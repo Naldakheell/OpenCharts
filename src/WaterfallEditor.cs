@@ -158,7 +158,7 @@ namespace OpenSlideCharts
                 {
                     var cell = data.Rows[r].Cells[c]; string raw = Convert.ToString(cell.Value).Trim(); if (raw.Length == 0) continue;
                     if (cell.Tag == null) cell.Tag = NewId("segment"); bool equals = String.Equals(raw, "e", StringComparison.OrdinalIgnoreCase);
-                    column.Segments.Add(new WaterfallSegment { Id = (string)cell.Tag, SheetRow = r, Calculated = equals, Value = equals ? (double?)null : ChartEditor.Number(raw, "Colonne " + c + ", segment " + (r + 1)) });
+                    column.Segments.Add(new WaterfallSegment { Id = (string)cell.Tag, SheetRow = r, Calculated = equals, Value = equals ? (double?)null : ChartEditor.Number(raw, "Column " + c + ", segment " + (r + 1)) });
                 }
                 if (column.Segments.Count == 0) throw new ArgumentException("Colonne " + c + " vide : renseignez une valeur ou retirez la colonne.");
                 model.Columns.Add(column);
@@ -187,7 +187,7 @@ namespace OpenSlideCharts
             foreach (DataGridViewRow row in links.Rows) model.Connectors.Add(new WaterfallConnector { Id = (string)row.Tag, Left = ReadAnchor(row, 0, 1, model), Right = ReadAnchor(row, 2, 3, model), Constrain = row.Cells[4].Value == null || Convert.ToBoolean(row.Cells[4].Value) });
             foreach (DataGridViewRow row in pins.Rows)
             {
-                var pin = new WaterfallPin { Id = (string)row.Tag, Anchor = ReadAnchor(row, 0, 1, model), Level = ChartEditor.Number(Convert.ToString(row.Cells[2].Value), "Ancrage") };
+                var pin = new WaterfallPin { Id = (string)row.Tag, Anchor = ReadAnchor(row, 0, 1, model), Level = ChartEditor.Number(Convert.ToString(row.Cells[2].Value), "Anchor") };
                 WaterfallPin old = row.Cells[0].Tag as WaterfallPin;
                 if (old == null) old = source.Waterfall.Pins.Find(delegate(WaterfallPin p) { return p.Id == pin.Id; });
                 bool unchanged = old != null && old.Level == pin.Level && old.Anchor.ColumnId == pin.Anchor.ColumnId && old.Anchor.Weights.Count == pin.Anchor.Weights.Count;
@@ -227,7 +227,7 @@ namespace OpenSlideCharts
             for (int r = 1; r < table.Count; r++)
             {
                 if (table[r].Count != table[0].Count) throw new ArgumentException("Nombre de colonnes différent à la ligne " + (r + 1));
-                for (int c = 1; c < table[r].Count; c++) if (!String.IsNullOrWhiteSpace(table[r][c]) && !String.Equals(table[r][c].Trim(), "e", StringComparison.OrdinalIgnoreCase)) ChartEditor.Number(table[r][c], "Collage");
+                for (int c = 1; c < table[r].Count; c++) if (!String.IsNullOrWhiteSpace(table[r][c]) && !String.Equals(table[r][c].Trim(), "e", StringComparison.OrdinalIgnoreCase)) ChartEditor.Number(table[r][c], "Paste");
             }
             var ids = new List<string>(); var cells = new Dictionary<string, string>();
             for (int c = 1; c < data.Columns.Count; c++) { ids.Add((string)data.Columns[c].Tag); for (int r = 0; r < data.Rows.Count; r++) if (data.Rows[r].Cells[c].Tag != null) cells[c + ":" + r] = (string)data.Rows[r].Cells[c].Tag; }

@@ -198,7 +198,7 @@ namespace OpenSlideCharts
             foreach (DataGridViewRow row in anchors.Rows) if (!row.IsNewRow && !Empty(row)) g.DateAnchors.Add(new GanttDateAnchor { Id = Cell(row, 0).Trim(), RowId = Cell(row, 1).Trim(), Index = Integer(Cell(row, 2), "Colonne date") - 1, Date = Cell(row, 3).Trim() });
             g.Shades = new List<GanttShade>(); foreach (DataGridViewRow row in shades.Rows) if (!row.IsNewRow && !Empty(row)) g.Shades.Add(new GanttShade { StartDate = Cell(row, 0).Trim(), EndDate = Cell(row, 1).Trim(), Label = Cell(row, 2), Color = Optional(Cell(row, 3)) });
             g.Links = new List<GanttLink>(); foreach (DataGridViewRow row in links.Rows) if (!row.IsNewRow && !Empty(row)) g.Links.Add(new GanttLink { FromId = Cell(row, 0).Trim(), ToId = Cell(row, 1).Trim(), FromEdge = String.IsNullOrWhiteSpace(Cell(row, 2)) ? "End" : Cell(row, 2).Trim(), ToEdge = String.IsNullOrWhiteSpace(Cell(row, 3)) ? "Start" : Cell(row, 3).Trim(), Color = Optional(Cell(row, 4)) });
-            g.ShowResponsible = responsible.Checked; g.ShowRemark = remark.Checked; g.LabelFraction = ChartEditor.Number(labelFraction.Text, "Part libellés"); g.FontSize = ChartEditor.Number(fontSize.Text, "Police");
+            g.ShowResponsible = responsible.Checked; g.ShowRemark = remark.Checked; g.LabelFraction = ChartEditor.Number(labelFraction.Text, "Label share"); g.FontSize = ChartEditor.Number(fontSize.Text, "Font size");
             g.ActivityHeader = activityHeader.Text; g.ResponsibleHeader = responsibleHeader.Text; g.RemarkHeader = remarkHeader.Text;
             return result;
         }

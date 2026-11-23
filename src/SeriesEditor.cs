@@ -21,7 +21,7 @@ namespace OpenSlideCharts
             ChartRectangle frame = source.Appearance == null ? null : source.Appearance.SourceFrame;
             renderWidth = width ?? (frame == null ? 720 : frame.Width);
             renderHeight = height ?? (frame == null ? 400 : frame.Height);
-            Text = "OpenSlideCharts — Séries";
+            Text = "OpenSlideCharts — Series";
             StartPosition = FormStartPosition.CenterScreen;
             AutoScaleMode = AutoScaleMode.Dpi;
             ClientSize = new Size(860, 560); MinimumSize = new Size(680, 440);
@@ -46,11 +46,11 @@ namespace OpenSlideCharts
             kind.Dock = mode.Dock = title.Dock = DockStyle.Fill;
             title.Text = initial.Title ?? "";
             fields.Controls.Add(kind, 0, 0); fields.Controls.Add(mode, 1, 0); fields.Controls.Add(title, 2, 0); root.Controls.Add(fields, 0, 0);
-            string instructions = "Cellule vide = donnée absente. Collage : première ligne = noms de séries, première colonne = catégories.\nClustered : groupé ; Stacked : empilé ; Percent : empilé à 100 %. Double-clic sur un en-tête pour renommer.";
+            string instructions = "Empty cell = missing data. Paste: first row = series names, first column = categories.\nClustered: side by side; Stacked: stacked; Percent: 100% stacked. Double-click a header to rename it.";
             if (source.ImportWarnings != null && source.ImportWarnings.Count > 0)
             {
                 root.RowStyles[1].Height = 85;
-                instructions += "\nImport partiel : " + String.Join(" ; ", source.ImportWarnings.ToArray());
+                instructions += "\nPartial import: " + String.Join("; ", source.ImportWarnings.ToArray());
             }
             root.Controls.Add(new Label { Dock = DockStyle.Fill, Text = instructions }, 0, 1);
             grid.Dock = DockStyle.Fill; grid.BackgroundColor = Color.White;
@@ -69,26 +69,26 @@ namespace OpenSlideCharts
             root.Controls.Add(grid, 0, 2);
             LoadMatrix(initial);
             var actions = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false };
-            actions.Controls.Add(MakeButton("Coller matrice", delegate { Paste(); }));
-            actions.Controls.Add(MakeButton("Ajouter série", delegate
+            actions.Controls.Add(MakeButton("Paste Matrix", delegate { Paste(); }));
+            actions.Controls.Add(MakeButton("Add Series", delegate
             {
-                if (grid.Columns.Count >= 9) { Error("Huit séries au maximum."); return; }
+                if (grid.Columns.Count >= 9) { Error("Eight series maximum."); return; }
                 string name = AskName("Série " + grid.Columns.Count);
                 if (name != null) AddSeries(name);
             }));
-            actions.Controls.Add(MakeButton("Retirer série", delegate
+            actions.Controls.Add(MakeButton("Remove Series", delegate
             {
-                if (grid.CurrentCell == null || grid.CurrentCell.ColumnIndex == 0) { Error("Sélectionnez une cellule de la série à retirer."); return; }
-                if (grid.Columns.Count <= 2) { Error("Conservez au moins une série."); return; }
+                if (grid.CurrentCell == null || grid.CurrentCell.ColumnIndex == 0) { Error("Select a cell in the series to remove."); return; }
+                if (grid.Columns.Count <= 2) { Error("Keep at least one series."); return; }
                 grid.Columns.RemoveAt(grid.CurrentCell.ColumnIndex);
             }));
-            var apply = MakeButton("Appliquer", delegate
+            var apply = MakeButton("Apply", delegate
             {
                 try { ChartSpec candidate = ReadMatrix(); ValidateCandidate(candidate); Spec = candidate; DialogResult = DialogResult.OK; Close(); }
                 catch (Exception ex) { Error(ex.Message); }
             });
             actions.Controls.Add(apply);
-            var cancel = MakeButton("Annuler", delegate { DialogResult = DialogResult.Cancel; Close(); });
+            var cancel = MakeButton("Cancel", delegate { DialogResult = DialogResult.Cancel; Close(); });
             actions.Controls.Add(cancel); AcceptButton = apply; CancelButton = cancel;
             root.Controls.Add(actions, 0, 3);
         }
@@ -97,7 +97,7 @@ namespace OpenSlideCharts
         private void ValidateCandidate(ChartSpec candidate)
         {
             if ((candidate.Appearance == null || candidate.Appearance.PlotRect == null) && (renderWidth < 320 || renderHeight < 240))
-                throw new ArgumentException("Ce changement nécessite un cadre d'au moins 320 × 240 points. Conservez le type actuel, puis agrandissez le groupe dans PowerPoint avant de le modifier.");
+                throw new ArgumentException("This change requires a frame of at least 320 × 240 points. Keep the current type, then enlarge the group in PowerPoint before editing it.");
             ChartEngine.Build(candidate, renderWidth, renderHeight);
         }
         private void AddSeries(string name, int sourceIndex = -1)
@@ -109,7 +109,7 @@ namespace OpenSlideCharts
         private void LoadMatrix(ChartSpec spec)
         {
             grid.CancelEdit(); grid.Rows.Clear(); grid.Columns.Clear();
-            grid.Columns.Add("Category", "Catégorie"); grid.Columns[0].SortMode = DataGridViewColumnSortMode.NotSortable;
+            grid.Columns.Add("Category", "Category"); grid.Columns[0].SortMode = DataGridViewColumnSortMode.NotSortable;
             for (int s = 0; s < spec.Series.Count; s++) AddSeries(spec.Series[s], s < source.Series.Count ? s : -1);
             foreach (ChartRow row in spec.Rows)
             {
@@ -159,7 +159,7 @@ namespace OpenSlideCharts
                 for (int s = 1; s < grid.Columns.Count; s++)
                 {
                     string value = Convert.ToString(row.Cells[s].Value);
-                    item.Values.Add(String.IsNullOrWhiteSpace(value) ? (double?)null : ChartEditor.Number(value, "Ligne " + (row.Index + 1) + ", " + grid.Columns[s].HeaderText));
+                    item.Values.Add(String.IsNullOrWhiteSpace(value) ? (double?)null : ChartEditor.Number(value, "Row " + (row.Index + 1) + ", " + grid.Columns[s].HeaderText));
                 }
                 result.Rows.Add(item);
             }
@@ -197,14 +197,14 @@ namespace OpenSlideCharts
         private void PasteMatrix(string text)
         {
             List<List<string>> table = ChartEditor.ParseTsv(text);
-            if (table.Count < 2 || table[0].Count < 2 || table[0].Count > 9) throw new ArgumentException("En-tête requis : Catégorie puis un à huit noms de séries.");
+            if (table.Count < 2 || table[0].Count < 2 || table[0].Count > 9) throw new ArgumentException("Header required: Category, then one to eight series names.");
             var candidate = new ChartSpec { Kind = (string)kind.SelectedItem, LayoutMode = (string)mode.SelectedItem, Title = title.Text };
             for (int s = 1; s < table[0].Count; s++) candidate.Series.Add(table[0][s]);
             for (int r = 1; r < table.Count; r++)
             {
-                if (table[r].Count != table[0].Count) throw new ArgumentException("Ligne " + (r + 1) + " : nombre de colonnes différent de l'en-tête.");
+                if (table[r].Count != table[0].Count) throw new ArgumentException("Row " + (r + 1) + ": column count differs from the header.");
                 var row = new ChartRow { Label = table[r][0] };
-                for (int s = 1; s < table[r].Count; s++) row.Values.Add(String.IsNullOrWhiteSpace(table[r][s]) ? (double?)null : ChartEditor.Number(table[r][s], "Ligne " + (r + 1)));
+                for (int s = 1; s < table[r].Count; s++) row.Values.Add(String.IsNullOrWhiteSpace(table[r][s]) ? (double?)null : ChartEditor.Number(table[r][s], "Row " + (r + 1)));
                 candidate.Rows.Add(row);
             }
             // Paste validates the data before changing the grid. ReadMatrix merges
@@ -213,7 +213,7 @@ namespace OpenSlideCharts
         }
         private string AskName(string initial)
         {
-            using (var dialog = new Form { Text = "Nom de série", StartPosition = FormStartPosition.CenterParent, ClientSize = new Size(330, 85), FormBorderStyle = FormBorderStyle.FixedDialog, MinimizeBox = false, MaximizeBox = false })
+            using (var dialog = new Form { Text = "Series Name", StartPosition = FormStartPosition.CenterParent, ClientSize = new Size(330, 85), FormBorderStyle = FormBorderStyle.FixedDialog, MinimizeBox = false, MaximizeBox = false })
             {
                 var input = new TextBox { Text = initial, Left = 12, Top = 12, Width = 305 };
                 var ok = new Button { Text = "OK", DialogResult = DialogResult.OK, Left = 235, Top = 45 };
@@ -221,6 +221,6 @@ namespace OpenSlideCharts
                 return dialog.ShowDialog(this) == DialogResult.OK ? input.Text : null;
             }
         }
-        private void Error(string text) { MessageBox.Show(this, text, "Vérifier les données", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
+        private void Error(string text) { MessageBox.Show(this, text, "Check Data", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
     }
 }

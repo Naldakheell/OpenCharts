@@ -129,7 +129,7 @@ namespace OpenSlideCharts
                 throw new ArgumentException("Décimales des pourcentages : entier entre 0 et 6 attendu.");
             result.Kind = kind.SelectedIndex == 1 ? "Doughnut" : "Pie"; result.Title = title.Text.Trim(); result.Rows = new List<ChartRow>();
             result.WorkbookPath = workbook.Text.Trim(); result.Worksheet = worksheet.Text.Trim(); result.RangeAddress = range.Text.Trim();
-            result.Pie = new PieOptions { StartAngle = ChartEditor.Number(angle.Text, "Angle"), HoleRatio = ChartEditor.Number(hole.Text, "Trou") / 100,
+            result.Pie = new PieOptions { StartAngle = ChartEditor.Number(angle.Text, "Angle"), HoleRatio = ChartEditor.Number(hole.Text, "Hole") / 100,
                 Order = orders[order.SelectedIndex], LabelContent = contents[content.SelectedIndex], ShowCategory = categories.Checked,
                 PercentDigits = percentDigits, CenterTitle = center.Text.Trim() };
             if ((Spec.Pie == null || !Spec.Pie.HoleRatio.HasValue) && result.Kind.Equals(Spec.Kind, StringComparison.OrdinalIgnoreCase) && hole.Text == initialHole) result.Pie.HoleRatio = null;
@@ -139,9 +139,9 @@ namespace OpenSlideCharts
                 if (row.IsNewRow) continue;
                 string label = Cell(row, 0), value = Cell(row, 1), color = Cell(row, 2).Trim(), explode = Cell(row, 3);
                 if (String.IsNullOrWhiteSpace(label) && String.IsNullOrWhiteSpace(value) && color.Length == 0 && String.IsNullOrWhiteSpace(explode)) continue;
-                int index = result.Rows.Count; string location = "Ligne " + (row.Index + 1);
-                result.Rows.Add(new ChartRow { Label = label, Value = ChartEditor.Number(value, location + ", Valeur") });
-                double distance = String.IsNullOrWhiteSpace(explode) ? 0 : ChartEditor.Number(explode, location + ", Éclatement") / 100;
+                int index = result.Rows.Count; string location = "Row " + (row.Index + 1);
+                result.Rows.Add(new ChartRow { Label = label, Value = ChartEditor.Number(value, location + ", Value") });
+                double distance = String.IsNullOrWhiteSpace(explode) ? 0 : ChartEditor.Number(explode, location + ", Explosion") / 100;
                 if (color.Length > 0 || distance != 0) result.Pie.Slices.Add(new PieSliceStyle { Index = index, Color = color.Length == 0 ? null : color, Explode = distance });
             }
             return result;
@@ -178,7 +178,7 @@ namespace OpenSlideCharts
                 string first = cells[0].Trim().ToLowerInvariant();
                 if (rows.Count == 0 && cells.Count == 2 && (first == "label" || first == "libellé" || first == "libelle" || first == "category" || first == "catégorie") && (cells[1].Trim().Equals("value", StringComparison.OrdinalIgnoreCase) || cells[1].Trim().Equals("valeur", StringComparison.OrdinalIgnoreCase))) continue;
                 if (cells.Count != 2) throw new ArgumentException("Collage : deux colonnes attendues, Libellé et Valeur.");
-                rows.Add(new ChartRow { Label = cells[0], Value = ChartEditor.Number(cells[1], "Ligne collée " + (rows.Count + 1)) });
+                rows.Add(new ChartRow { Label = cells[0], Value = ChartEditor.Number(cells[1], "Pasted row " + (rows.Count + 1)) });
             }
             if (rows.Count == 0 || rows.Count > 80) throw new ArgumentException("Collage : 1 à 80 lignes attendues.");
             ChartSpec candidate = ReadSpec(false); candidate.Rows = rows; ValidateCandidate(candidate);

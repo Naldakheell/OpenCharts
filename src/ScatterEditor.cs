@@ -151,7 +151,7 @@ namespace OpenSlideCharts
             options.XTitle = xTitle.Text.Trim(); options.YTitle = yTitle.Text.Trim();
             options.XAxis = new ScatterAxisSpec { Minimum = Optional(xMin.Text, "Minimum X"), Maximum = Optional(xMax.Text, "Maximum X"), Logarithmic = xLog.Checked, Reversed = xReverse.Checked };
             options.YAxis = new ScatterAxisSpec { Minimum = Optional(yMin.Text, "Minimum Y"), Maximum = Optional(yMax.Text, "Maximum Y"), Logarithmic = yLog.Checked, Reversed = yReverse.Checked };
-            options.MarkerSize = ChartEditor.Number(markerSize.Text, "Taille des marqueurs"); options.MaxBubbleDiameter = ChartEditor.Number(bubbleSize.Text, "Diamètre des bulles"); options.LabelFontSize = ChartEditor.Number(labelSize.Text, "Police des étiquettes");
+            options.MarkerSize = ChartEditor.Number(markerSize.Text, "Marker size"); options.MaxBubbleDiameter = ChartEditor.Number(bubbleSize.Text, "Bubble diameter"); options.LabelFontSize = ChartEditor.Number(labelSize.Text, "Label font size");
             options.BubbleSizing = sizing.SelectedIndex == 1 ? "Diameter" : "Area"; options.MarkerScheme = schemeKeys[scheme.SelectedIndex];
             options.ShowLabels = labels.SelectedIndex == 0 ? (bool?)null : labels.SelectedIndex == 1; options.LabelContent = labelKeys[firstContent.SelectedIndex]; options.SecondLabelContent = labelKeys[secondContent.SelectedIndex];
             options.ShowGrid = showGrid.Checked; options.ShowLegend = showLegend.Checked; options.Trendlines = new List<ScatterTrendline>(); options.Partitions = new List<ScatterPartition>();
@@ -159,7 +159,7 @@ namespace OpenSlideCharts
             foreach (DataGridViewRow row in partitions.Rows) if (!row.IsNewRow && !Empty(row)) options.Partitions.Add(new ScatterPartition { Label = Cell(row, 0), X1 = ChartEditor.Number(Cell(row, 1), "Partition X1"), Y1 = ChartEditor.Number(Cell(row, 2), "Partition Y1"), X2 = ChartEditor.Number(Cell(row, 3), "Partition X2"), Y2 = ChartEditor.Number(Cell(row, 4), "Partition Y2"), Color = OptionalText(Cell(row, 5)) });
             if (!readPoints) { options.Points = new List<ScatterPoint>(); return result; }
             var points = new List<ScatterPoint>();
-            foreach (DataGridViewRow row in data.Rows) if (!row.IsNewRow && !Empty(row)) points.Add(new ScatterPoint { Label = Cell(row, 0), X = Optional(Cell(row, 1), "X ligne " + (row.Index + 1)), Y = Optional(Cell(row, 2), "Y ligne " + (row.Index + 1)), Size = Optional(Cell(row, 3), "Taille ligne " + (row.Index + 1)), Group = Cell(row, 4), Color = OptionalText(Cell(row, 5)), Marker = OptionalText(Cell(row, 6)) });
+            foreach (DataGridViewRow row in data.Rows) if (!row.IsNewRow && !Empty(row)) points.Add(new ScatterPoint { Label = Cell(row, 0), X = Optional(Cell(row, 1), "X row " + (row.Index + 1)), Y = Optional(Cell(row, 2), "Y row " + (row.Index + 1)), Size = Optional(Cell(row, 3), "Size row " + (row.Index + 1)), Group = Cell(row, 4), Color = OptionalText(Cell(row, 5)), Marker = OptionalText(Cell(row, 6)) });
             return ScatterData.ReplacePoints(result, points);
         }
         private void ValidateCandidate(ChartSpec candidate) { ChartEngine.Build(candidate, width, height); }
@@ -183,7 +183,7 @@ namespace OpenSlideCharts
                 if (cells.TrueForAll(delegate(string cell) { return String.IsNullOrWhiteSpace(cell); })) continue;
                 if (points.Count == 0 && cells.Count >= 3 && cells[1].Trim().Equals("X", StringComparison.OrdinalIgnoreCase) && cells[2].Trim().Equals("Y", StringComparison.OrdinalIgnoreCase)) continue;
                 if (cells.Count < 3 || cells.Count > 7) throw new ArgumentException("Collage : 3 à 7 colonnes attendues (Libellé, X, Y, Taille, Groupe, Couleur, Marqueur).");
-                points.Add(new ScatterPoint { Label = cells[0], X = Optional(cells[1], "X collé"), Y = Optional(cells[2], "Y collé"), Size = cells.Count > 3 ? Optional(cells[3], "Taille collée") : null,
+                points.Add(new ScatterPoint { Label = cells[0], X = Optional(cells[1], "Pasted X"), Y = Optional(cells[2], "Pasted Y"), Size = cells.Count > 3 ? Optional(cells[3], "Pasted size") : null,
                     Group = cells.Count > 4 ? cells[4] : "", Color = cells.Count > 5 ? OptionalText(cells[5]) : null, Marker = cells.Count > 6 ? OptionalText(cells[6]) : null });
             }
             ChartSpec candidate = ScatterData.ReplacePoints(ReadSpec(false), points); ValidateCandidate(candidate);

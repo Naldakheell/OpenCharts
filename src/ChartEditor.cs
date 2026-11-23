@@ -21,7 +21,7 @@ namespace OpenSlideCharts
         public ChartEditor(ChartSpec initial)
         {
             Spec = Clone(initial ?? ChartSamples.Create("Waterfall"));
-            Text = "OpenSlideCharts — Éditer le graphique";
+            Text = "OpenSlideCharts — Edit Chart";
             StartPosition = FormStartPosition.CenterScreen;
             AutoScaleDimensions = new SizeF(96F, 96F);
             AutoScaleMode = AutoScaleMode.Dpi;
@@ -44,7 +44,7 @@ namespace OpenSlideCharts
             Controls.Add(layout);
 
             var heading = new Label();
-            heading.Text = "Données et présentation";
+            heading.Text = "Data and Appearance";
             heading.Font = new Font(Font.FontFamily, 16F, FontStyle.Bold);
             heading.ForeColor = Color.FromArgb(26, 47, 77);
             heading.Dock = DockStyle.Fill;
@@ -56,8 +56,8 @@ namespace OpenSlideCharts
             fields.RowCount = 2;
             fields.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 190));
             fields.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            fields.Controls.Add(Caption("Type de graphique"), 0, 0);
-            fields.Controls.Add(Caption("Titre"), 1, 0);
+            fields.Controls.Add(Caption("Chart type"), 0, 0);
+            fields.Controls.Add(Caption("Title"), 1, 0);
             kind.DropDownStyle = ComboBoxStyle.DropDownList;
             kind.Items.AddRange(new object[] { "Waterfall", "Column", "Bar", "Line", "Mekko", "Gantt" });
             kind.Dock = DockStyle.Fill;
@@ -85,9 +85,9 @@ namespace OpenSlideCharts
             grid.ColumnHeadersHeight = 32;
             grid.RowTemplate.Height = 27;
             grid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(244, 247, 251);
-            grid.Columns.Add("Label", "Libellé");
-            grid.Columns.Add("Value", "Valeur");
-            grid.Columns.Add("Secondary", "Secondaire");
+            grid.Columns.Add("Label", "Label");
+            grid.Columns.Add("Value", "Value");
+            grid.Columns.Add("Secondary", "Secondary");
             grid.Columns[0].FillWeight = 190;
             var total = new DataGridViewCheckBoxColumn();
             total.Name = "Total";
@@ -112,25 +112,25 @@ namespace OpenSlideCharts
             grid.DataError += delegate(object sender, DataGridViewDataErrorEventArgs e)
             {
                 e.ThrowException = false;
-                ShowError("Valeur de cellule non valide.");
+                ShowError("Invalid cell value.");
             };
             layout.Controls.Add(grid, 0, 3);
 
             var actions = new FlowLayoutPanel();
             actions.Dock = DockStyle.Fill;
             actions.WrapContents = false;
-            actions.Controls.Add(Button("Coller tableau Excel", delegate { PasteTable(); }));
-            actions.Controls.Add(Button("Charger un exemple", delegate
+            actions.Controls.Add(Button("Paste Excel Table", delegate { PasteTable(); }));
+            actions.Controls.Add(Button("Load Sample", delegate
             {
                 LoadRows(ChartSamples.Create(CurrentKind()).Rows);
             }));
-            var pasteHint = Caption("Collage TSV : remplace toutes les lignes. Ctrl+V dans la grille.");
+            var pasteHint = Caption("TSV paste replaces all rows. Press Ctrl+V in the grid.");
             pasteHint.Margin = new Padding(10, 10, 0, 0);
             actions.Controls.Add(pasteHint);
             layout.Controls.Add(actions, 0, 4);
 
             var excel = new GroupBox();
-            excel.Text = "Source Excel (facultatif)";
+            excel.Text = "Excel Source (optional)";
             excel.Dock = DockStyle.Fill;
             excel.Padding = new Padding(10, 20, 10, 7);
             var excelFields = new TableLayoutPanel();
@@ -141,16 +141,16 @@ namespace OpenSlideCharts
             excelFields.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
             excelFields.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 90));
             excelFields.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-            excelFields.Controls.Add(Caption("Fichier"), 0, 0);
+            excelFields.Controls.Add(Caption("File"), 0, 0);
             workbook.Dock = DockStyle.Fill;
             excelFields.Controls.Add(workbook, 1, 0);
             excelFields.SetColumnSpan(workbook, 2);
-            var browse = Button("Parcourir…", BrowseWorkbook);
+            var browse = Button("Browse…", BrowseWorkbook);
             excelFields.Controls.Add(browse, 3, 0);
-            excelFields.Controls.Add(Caption("Feuille"), 0, 1);
+            excelFields.Controls.Add(Caption("Sheet"), 0, 1);
             worksheet.Dock = DockStyle.Fill;
             excelFields.Controls.Add(worksheet, 1, 1);
-            excelFields.Controls.Add(Caption("Plage (A1:D8)"), 2, 1);
+            excelFields.Controls.Add(Caption("Range (A1:D8)"), 2, 1);
             var rangePanel = new TableLayoutPanel();
             rangePanel.Dock = DockStyle.Fill;
             rangePanel.ColumnCount = 2;
@@ -158,7 +158,7 @@ namespace OpenSlideCharts
             rangePanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120));
             range.Dock = DockStyle.Fill;
             rangePanel.Controls.Add(range, 0, 0);
-            rangePanel.Controls.Add(Button("Importer Excel", ImportExcel), 1, 0);
+            rangePanel.Controls.Add(Button("Import from Excel", ImportExcel), 1, 0);
             excelFields.Controls.Add(rangePanel, 3, 1);
             excel.Controls.Add(excelFields);
             layout.Controls.Add(excel, 0, 5);
@@ -167,11 +167,11 @@ namespace OpenSlideCharts
             footer.Dock = DockStyle.Fill;
             footer.FlowDirection = FlowDirection.RightToLeft;
             footer.Padding = new Padding(0, 7, 0, 0);
-            var ok = Button("Appliquer", Apply);
+            var ok = Button("Apply", Apply);
             ok.BackColor = Color.FromArgb(30, 86, 160);
             ok.ForeColor = Color.White;
             ok.FlatStyle = FlatStyle.Flat;
-            var cancel = Button("Annuler", delegate { DialogResult = DialogResult.Cancel; Close(); });
+            var cancel = Button("Cancel", delegate { DialogResult = DialogResult.Cancel; Close(); });
             cancel.DialogResult = DialogResult.Cancel;
             footer.Controls.Add(ok);
             footer.Controls.Add(cancel);
@@ -199,10 +199,10 @@ namespace OpenSlideCharts
         {
             switch (CurrentKind())
             {
-                case "Waterfall": help.Text = "Valeur = variation. Total coché = montant absolu (pas une variation). Secondaire ignoré."; break;
-                case "Mekko": help.Text = "Valeur = largeur de catégorie (> 0). Secondaire = pourcentage de hauteur, entre 0 et 100. Total ignoré."; break;
-                case "Gantt": help.Text = "Valeur = départ, en jours depuis l’origine. Secondaire = durée, en jours. Total ignoré."; break;
-                default: help.Text = "Valeur = montant de chaque catégorie. Secondaire et Total ignorés. Libellés et titre restent éditables."; break;
+                case "Waterfall": help.Text = "Value = change. Checked Total = absolute amount (not a change). Secondary is ignored."; break;
+                case "Mekko": help.Text = "Value = category width (> 0). Secondary = height percentage, from 0 to 100. Total is ignored."; break;
+                case "Gantt": help.Text = "Value = start, in days from the origin. Secondary = duration, in days. Total is ignored."; break;
+                default: help.Text = "Value = amount for each category. Secondary and Total are ignored. Labels and title remain editable."; break;
             }
         }
 
@@ -254,9 +254,9 @@ namespace OpenSlideCharts
                 string secondary = Cell(row, 2);
                 bool isTotal = row.Cells[3].Value is bool && (bool)row.Cells[3].Value;
                 if (String.IsNullOrWhiteSpace(label) && String.IsNullOrWhiteSpace(value) && String.IsNullOrWhiteSpace(secondary) && !isTotal) continue;
-                string location = "Ligne " + (row.Index + 1).ToString(CultureInfo.InvariantCulture);
-                result.Rows.Add(new ChartRow { Label = label, Value = Number(value, location + ", Valeur"),
-                    Secondary = String.IsNullOrWhiteSpace(secondary) ? 0 : Number(secondary, location + ", Secondaire"), Total = isTotal });
+                string location = "Row " + (row.Index + 1).ToString(CultureInfo.InvariantCulture);
+                result.Rows.Add(new ChartRow { Label = label, Value = Number(value, location + ", Value"),
+                    Secondary = String.IsNullOrWhiteSpace(secondary) ? 0 : Number(secondary, location + ", Secondary"), Total = isTotal });
             }
             return result;
         }
@@ -283,8 +283,8 @@ namespace OpenSlideCharts
         {
             using (var dialog = new OpenFileDialog())
             {
-                dialog.Title = "Choisir le classeur Excel";
-                dialog.Filter = "Classeurs Excel|*.xlsx;*.xlsm;*.xls;*.xlsb|Tous les fichiers|*.*";
+                dialog.Title = "Choose Excel Workbook";
+                dialog.Filter = "Excel workbooks|*.xlsx;*.xlsm;*.xls;*.xlsb|All files|*.*";
                 dialog.CheckFileExists = true;
                 if (dialog.ShowDialog(this) == DialogResult.OK) workbook.Text = dialog.FileName;
             }
@@ -296,10 +296,10 @@ namespace OpenSlideCharts
             {
                 ChartSpec candidate = ReadSpec(false);
                 if (String.IsNullOrWhiteSpace(candidate.WorkbookPath) || String.IsNullOrWhiteSpace(candidate.Worksheet) || String.IsNullOrWhiteSpace(candidate.RangeAddress))
-                    throw new ArgumentException("Renseignez le fichier Excel, la feuille et la plage avant l’import.");
+                    throw new ArgumentException("Enter the Excel file, sheet and range before importing.");
                 UseWaitCursor = true;
                 ChartSpec imported = ExcelLink.Read(candidate);
-                if (imported == null) throw new InvalidOperationException("L’import Excel n’a retourné aucune donnée.");
+                if (imported == null) throw new InvalidOperationException("The Excel import returned no data.");
                 LoadRows(imported.Rows);
             }
             catch (Exception error) { ShowError(error.Message); }
@@ -325,7 +325,7 @@ namespace OpenSlideCharts
         {
             try
             {
-                if (!Clipboard.ContainsText()) throw new ArgumentException("Presse-papiers vide : copiez une plage Excel avec libellés et valeurs.");
+                if (!Clipboard.ContainsText()) throw new ArgumentException("The clipboard is empty: copy an Excel range with labels and values.");
                 var table = ParseTsv(Clipboard.GetText());
                 var rows = new List<ChartRow>();
                 for (int i = 0; i < table.Count; i++)
@@ -335,13 +335,13 @@ namespace OpenSlideCharts
                     foreach (string cell in cells) if (!String.IsNullOrWhiteSpace(cell)) empty = false;
                     if (empty) continue;
                     if (i == 0 && cells.Count >= 2 && IsHeader(cells[0], cells[1])) continue;
-                    if (cells.Count < 2 || cells.Count > 4) throw new ArgumentException("Ligne " + (i + 1) + " : 2 à 4 colonnes attendues (Libellé, Valeur, Secondaire, Total).");
-                    string location = "Ligne collée " + (i + 1);
-                    rows.Add(new ChartRow { Label = cells[0], Value = Number(cells[1], location + ", Valeur"),
-                        Secondary = cells.Count > 2 && !String.IsNullOrWhiteSpace(cells[2]) ? Number(cells[2], location + ", Secondaire") : 0,
+                    if (cells.Count < 2 || cells.Count > 4) throw new ArgumentException("Row " + (i + 1) + ": 2 to 4 columns expected (Label, Value, Secondary, Total).");
+                    string location = "Pasted row " + (i + 1);
+                    rows.Add(new ChartRow { Label = cells[0], Value = Number(cells[1], location + ", Value"),
+                        Secondary = cells.Count > 2 && !String.IsNullOrWhiteSpace(cells[2]) ? Number(cells[2], location + ", Secondary") : 0,
                         Total = cells.Count > 3 && Boolean(cells[3], location) });
                 }
-                if (rows.Count == 0) throw new ArgumentException("Aucune ligne de données dans le presse-papiers.");
+                if (rows.Count == 0) throw new ArgumentException("There are no data rows on the clipboard.");
                 LoadRows(rows);
             }
             catch (Exception error) { ShowError(error.Message); }
@@ -361,7 +361,7 @@ namespace OpenSlideCharts
             {
                 case "": case "0": case "false": case "faux": case "non": return false;
                 case "1": case "true": case "vrai": case "oui": case "x": return true;
-                default: throw new ArgumentException(location + ", Total : utilisez VRAI/FAUX, oui/non ou 1/0.");
+                default: throw new ArgumentException(location + ", Total: use TRUE/FALSE, VRAI/FAUX, oui/non, x or 1/0.");
             }
         }
 
@@ -370,7 +370,7 @@ namespace OpenSlideCharts
             string s = input.Trim().Replace('\u00a0', ' ').Replace('\u202f', ' ').Replace('\u2212', '-');
             string normalized;
             if (Regex.IsMatch(s, @"^[+-]?\d{1,3}[.,]\d{3}$"))
-                throw new ArgumentException(location + " : nombre ambigu « " + input + " ». Utilisez un espace pour les milliers (1 234), ou une décimale explicite (1,2340 / 1.2340).");
+                throw new ArgumentException(location + ": ambiguous number \"" + input + "\". Use a space for thousands (1 234) or an explicit decimal (1,2340 / 1.2340).");
             if (Regex.IsMatch(s, @"^[+-]?\d{1,3}( \d{3})+([.,]\d+)?$"))
                 normalized = s.Replace(" ", "").Replace(',', '.');
             else if (Regex.IsMatch(s, @"^[+-]?\d{1,3}(,\d{3})+\.\d+$"))
@@ -383,10 +383,10 @@ namespace OpenSlideCharts
                 normalized = s.Replace(".", "");
             else if (Regex.IsMatch(s, @"^[+-]?(\d+([.,]\d*)?|[.,]\d+)([eE][+-]?\d+)?$"))
                 normalized = s.Replace(',', '.');
-            else throw new ArgumentException(location + " : nombre non reconnu « " + input + " ».");
+            else throw new ArgumentException(location + ": unrecognized number \"" + input + "\".");
             double result;
             if (!Double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out result) || Double.IsNaN(result) || Double.IsInfinity(result))
-                throw new ArgumentException(location + " : nombre hors limites.");
+                throw new ArgumentException(location + ": number out of range.");
             return result;
         }
 
@@ -422,11 +422,11 @@ namespace OpenSlideCharts
                 }
                 else
                 {
-                    if (closed) throw new ArgumentException("Collage TSV non valide : caractère après un champ entre guillemets.");
+                    if (closed) throw new ArgumentException("Invalid TSV paste: unexpected character after a quoted field.");
                     cell.Append(c);
                 }
             }
-            if (quoted) throw new ArgumentException("Collage TSV non valide : guillemet fermant manquant.");
+            if (quoted) throw new ArgumentException("Invalid TSV paste: missing closing quote.");
             if (cell.Length > 0 || row.Count > 0 || closed) { row.Add(cell.ToString()); result.Add(row); }
             return result;
         }
@@ -442,7 +442,7 @@ namespace OpenSlideCharts
 
         private void ShowError(string message)
         {
-            MessageBox.Show(this, message, "Vérifier les données", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show(this, message, "Check Data", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
     }
 }

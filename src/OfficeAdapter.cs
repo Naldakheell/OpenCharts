@@ -19,7 +19,7 @@ namespace OpenSlideCharts
         {
             dynamic shape = shapeObject;
             string hex = BitConverter.ToString(Encoding.UTF8.GetBytes(Serialize(spec))).Replace("-", "");
-            if (hex.Length > MaximumEncodedCharacters) throw new ArgumentException("Données trop volumineuses : 1 Mio de JSON UTF-8 au maximum.");
+            if (hex.Length > MaximumEncodedCharacters) throw new ArgumentException("Data too large: 1 MiB of UTF-8 JSON maximum.");
             int count = (hex.Length + TagCharacters - 1) / TagCharacters;
             shape.Tags.Add("OSC_VERSION", "1");
             shape.Tags.Add("OSC_COUNT", count.ToString(CultureInfo.InvariantCulture));
@@ -30,23 +30,23 @@ namespace OpenSlideCharts
         {
             dynamic shape = shapeObject;
             string version = shape.Tags.Item("OSC_VERSION");
-            if (version != "1") throw new ArgumentException("Sélectionnez un groupe OpenSlideCharts (version 1).");
+            if (version != "1") throw new ArgumentException("Select an OpenSlideCharts group (version 1).");
             int count;
-            if (!int.TryParse((string)shape.Tags.Item("OSC_COUNT"), out count) || count < 1 || count > MaximumTags) throw new InvalidDataException("Métadonnées du graphique invalides.");
+            if (!int.TryParse((string)shape.Tags.Item("OSC_COUNT"), out count) || count < 1 || count > MaximumTags) throw new InvalidDataException("Invalid chart metadata.");
             StringBuilder encoded = new StringBuilder();
             for (int i = 0; i < count; i++)
             {
                 string part = shape.Tags.Item("OSC_DATA_" + i.ToString("D4"));
-                if (part.Length == 0 || part.Length > TagCharacters) throw new InvalidDataException("Données du graphique incomplètes.");
+                if (part.Length == 0 || part.Length > TagCharacters) throw new InvalidDataException("Incomplete chart data.");
                 encoded.Append(part);
             }
             string hex = encoded.ToString();
-            if (hex.Length > MaximumEncodedCharacters) throw new InvalidDataException("Données du graphique trop volumineuses.");
-            if (hex.Length % 2 != 0) throw new InvalidDataException("Encodage du graphique invalide.");
+            if (hex.Length > MaximumEncodedCharacters) throw new InvalidDataException("Chart data too large.");
+            if (hex.Length % 2 != 0) throw new InvalidDataException("Invalid chart encoding.");
             byte[] bytes = new byte[hex.Length / 2];
             for (int i = 0; i < bytes.Length; i++) bytes[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
             ChartSpec spec = new JavaScriptSerializer().Deserialize<ChartSpec>(Encoding.UTF8.GetString(bytes));
-            if (spec == null) throw new InvalidDataException("Graphique vide.");
+            if (spec == null) throw new InvalidDataException("Empty chart.");
             return spec;
         }
     }
@@ -59,7 +59,7 @@ namespace OpenSlideCharts
             if (frame == null) return new ChartRectangle { X = 30, Y = 35, Width = Math.Max(320, slideWidth - 60), Height = Math.Max(240, slideHeight - 70) };
             spec.Appearance.Validate(spec.Series.Count, spec.Rows.Count);
             if (frame.X < 0 || frame.Y < 0 || frame.X + frame.Width > slideWidth + .001 || frame.Y + frame.Height > slideHeight + .001)
-                throw new ArgumentException("Le cadre d'origine dépasse cette diapositive. Utilisez une diapositive de mêmes dimensions que la source.");
+                throw new ArgumentException("The original frame extends beyond this slide. Use a slide with the same dimensions as the source.");
             return frame;
         }
         // Render first, then replace. A failed render leaves the previous chart intact.
@@ -121,7 +121,7 @@ namespace OpenSlideCharts
                         s = slide.Shapes.AddShape(p.Kind == "ellipse" ? 9 : 1, (float)(left + p.X), (float)(top + p.Y), (float)(exactSize ? p.W : Math.Max(.05, p.W)), (float)(exactSize ? p.H : Math.Max(.05, p.H)));
                         s.Fill.Solid(); s.Fill.ForeColor.RGB = p.Color; s.Line.Visible = 0;
                     }
-                    else throw new NotSupportedException("Primitive inconnue : " + p.Kind);
+                    else throw new NotSupportedException("Unknown primitive: " + p.Kind);
                     s.Name = prefix + names.Count.ToString(CultureInfo.InvariantCulture);
                     if (!String.IsNullOrEmpty(p.Role))
                     {
@@ -147,7 +147,7 @@ namespace OpenSlideCharts
         {
             ShapePath path = primitive.Path;
             if (path == null || path.Segments == null || path.Segments.Count == 0)
-                throw new ArgumentException("Un contour fermé est requis pour une forme libre.");
+                throw new ArgumentException("A closed outline is required for a freeform shape.");
             dynamic slide = slideObject;
             // Office's freeform consists of one closed contour. An annular sector
             // follows the outer arc, then the inner arc in reverse; its hole is
@@ -174,7 +174,7 @@ namespace OpenSlideCharts
         {
             dynamic old = oldObject;
             // Rotated groups cannot be regenerated without changing their local axes yet.
-            if (Math.Abs((double)old.Rotation) > .01) throw new NotSupportedException("Remettez la rotation du groupe à 0° avant de l'actualiser.");
+            if (Math.Abs((double)old.Rotation) > .01) throw new NotSupportedException("Reset the group rotation to 0° before refreshing it.");
             int position = old.ZOrderPosition;
             dynamic fresh = Render(slideObject, spec, frame == null ? (double)old.Left : frame.X, frame == null ? (double)old.Top : frame.Y, frame == null ? (double)old.Width : frame.Width, frame == null ? (double)old.Height : frame.Height);
             try
@@ -196,14 +196,14 @@ namespace OpenSlideCharts
             double result;
             // No thousands separator: avoid silently interpreting 1,234 as 1234.
             if (double.TryParse(text, NumberStyles.Float, CultureInfo.CurrentCulture, out result) || double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out result)) return result;
-            throw new FormatException("Nombre invalide : " + text);
+            throw new FormatException("Invalid number: " + text);
         }
         public static ChartSpec Read(ChartSpec source)
         {
-            if (source != null && source.Waterfall != null) throw new NotSupportedException("Les liens Excel des cascades à connecteurs ne sont pas encore pris en charge. Utilisez le collage dans l'éditeur de cascade.");
-            if (source != null && source.Series != null && source.Series.Count > 0) throw new NotSupportedException("Les liens Excel multi-séries ne sont pas encore pris en charge. Utilisez le collage de matrice dans l'éditeur.");
-            if (source == null || String.IsNullOrWhiteSpace(source.WorkbookPath) || String.IsNullOrWhiteSpace(source.Worksheet) || String.IsNullOrWhiteSpace(source.RangeAddress)) throw new ArgumentException("Indiquez fichier Excel, feuille et plage sans en-tête (A2:D8, par exemple).");
-            if (!File.Exists(source.WorkbookPath)) throw new FileNotFoundException("Classeur absent ; les données embarquées sont conservées.", source.WorkbookPath);
+            if (source != null && source.Waterfall != null) throw new NotSupportedException("Excel links are not yet supported for waterfalls with connectors. Paste the data in the waterfall editor instead.");
+            if (source != null && source.Series != null && source.Series.Count > 0) throw new NotSupportedException("Multi-series Excel links are not yet supported. Paste a matrix in the editor instead.");
+            if (source == null || String.IsNullOrWhiteSpace(source.WorkbookPath) || String.IsNullOrWhiteSpace(source.Worksheet) || String.IsNullOrWhiteSpace(source.RangeAddress)) throw new ArgumentException("Specify the Excel file, sheet and range without a header (for example, A2:D8).");
+            if (!File.Exists(source.WorkbookPath)) throw new FileNotFoundException("Workbook not found; the embedded data is kept.", source.WorkbookPath);
             dynamic app = null, books = null, book = null, sheets = null, sheet = null, range = null, rows = null, columns = null, areas = null;
             try
             {
@@ -218,31 +218,31 @@ namespace OpenSlideCharts
                 if (source.Gantt != null)
                 {
                     if (rowCount < 1 || rowCount > 101 || colCount < 2 || colCount > 33 || (int)areas.Count != 1)
-                        throw new ArgumentException("Gantt : plage contiguë de 1 à 101 lignes et 2 à 33 colonnes ; première ligne réservée aux jalons.");
+                        throw new ArgumentException("Gantt: contiguous range of 1 to 101 rows and 2 to 33 columns; the first row is reserved for milestones.");
                     return GanttData.ReadCells(source, range.Value2 as object[,], (bool)book.Date1904);
                 }
                 if (String.Equals(source.Kind, "Scatter", StringComparison.OrdinalIgnoreCase) || String.Equals(source.Kind, "Bubble", StringComparison.OrdinalIgnoreCase))
                 {
                     if (rowCount < 1 || rowCount > 1000 || colCount < 3 || colCount > 7 || (int)areas.Count != 1)
-                        throw new ArgumentException("Dispersion/bulles : plage contiguë de 1 à 1000 lignes et 3 à 7 colonnes, sans en-tête.");
+                        throw new ArgumentException("Scatter/bubble: contiguous range of 1 to 1000 rows and 3 to 7 columns, without a header.");
                     return ScatterData.ReadCells(source, range.Value2 as object[,]);
                 }
-                if (rowCount < 1 || rowCount > 40 || colCount < 2 || colCount > 4 || (int)areas.Count != 1) throw new ArgumentException("Plage contiguë attendue : 1 à 40 lignes, 2 à 4 colonnes, sans en-tête.");
+                if (rowCount < 1 || rowCount > 40 || colCount < 2 || colCount > 4 || (int)areas.Count != 1) throw new ArgumentException("Contiguous range expected: 1 to 40 rows, 2 to 4 columns, without a header.");
                 object[,] cells = range.Value2 as object[,];
-                if (cells == null) throw new ArgumentException("La plage doit contenir libellé et valeur.");
+                if (cells == null) throw new ArgumentException("The range must contain a label and a value.");
                 ChartSpec result = ChartStorage.Clone(source); result.Rows.Clear();
                 for (int row = 1; row <= rowCount; row++)
                 {
                     string label = Convert.ToString(cells[row, 1], CultureInfo.CurrentCulture);
                     if (String.IsNullOrWhiteSpace(label) && cells[row, 2] == null) continue;
-                    if (cells[row, 2] == null) throw new FormatException("Valeur manquante à la ligne " + row);
+                    if (cells[row, 2] == null) throw new FormatException("Missing value in row " + row);
                     ChartRow item = new ChartRow { Label = label, Value = Number(cells[row, 2]) };
                     item.Secondary = colCount > 2 && cells[row, 3] != null ? Number(cells[row, 3]) : 0;
                     if (colCount > 3 && cells[row, 4] != null)
                     {
                         string flag = Convert.ToString(cells[row, 4], CultureInfo.InvariantCulture).Trim().ToLowerInvariant();
                         if (flag == "true" || flag == "vrai" || flag == "1" || flag == "oui") item.Total = true;
-                        else if (flag != "false" && flag != "faux" && flag != "0" && flag != "non" && flag != "") throw new FormatException("Indicateur Total invalide à la ligne " + row);
+                        else if (flag != "false" && flag != "faux" && flag != "0" && flag != "non" && flag != "") throw new FormatException("Invalid Total flag in row " + row);
                     }
                     result.Rows.Add(item);
                 }
