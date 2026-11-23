@@ -66,36 +66,36 @@ namespace OpenSlideCharts
         private void BeforePresentationSave(object presentation, ref bool cancel)
         {
             try { if (slideEditor != null) slideEditor.Stop(true); InvalidateRibbon(); if (disconnectPending) DisconnectInteractions(); }
-            catch (Exception error) { cancel = true; interactionError = error.Message; MessageBox.Show("L'édition des connecteurs n'a pas pu être terminée. Réessayez après avoir terminé l'édition.\n" + error.Message, "OpenSlideCharts", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
+            catch (Exception error) { cancel = true; interactionError = error.Message; MessageBox.Show("Connector editing could not be finished. Finish editing, then try again.\n" + error.Message, "OpenSlideCharts", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
         }
         public string DiagnosticStatus() { return "OpenSlideCharts 0.1; connected=" + (app != null) + "; ribbon=" + ribbonRequested + "; events=" + (events != null) + "; connector-editing=" + (slideEditor != null && slideEditor.Active) + "; connector-adding=" + (slideEditor != null && slideEditor.AddingConnector) + "; interface-handles=" + (slideEditor != null && slideEditor.InterfaceHandlesVisible) + "; edits=" + (slideEditor == null ? 0 : slideEditor.AppliedEdits) + "; polls=" + (slideEditor == null ? 0 : slideEditor.PollCount) + "; interaction=" + (interactionError ?? (slideEditor == null ? "" : slideEditor.LastMessage)); }
         public string GetCustomUI(string ribbonId)
         {
             ribbonRequested = true;
             return @"<customUI xmlns='http://schemas.microsoft.com/office/2009/07/customui' onLoad='OnRibbonLoad'><ribbon><tabs><tab id='oscTab' label='OpenSlideCharts'>
-              <group id='oscInsert' label='Graphiques éditables'>
-                <button id='oscWaterfall' label='Cascade' size='large' tag='Waterfall' onAction='InsertChart'/>
-                <button id='oscColumn' label='Colonnes' size='large' tag='Column' onAction='InsertChart'/>
-                <button id='oscBar' label='Barres' size='large' tag='Bar' onAction='InsertChart'/>
-                <button id='oscLine' label='Courbe' size='large' tag='Line' onAction='InsertChart'/>
+              <group id='oscInsert' label='Editable Charts'>
+                <button id='oscWaterfall' label='Waterfall' size='large' tag='Waterfall' onAction='InsertChart'/>
+                <button id='oscColumn' label='Column' size='large' tag='Column' onAction='InsertChart'/>
+                <button id='oscBar' label='Bar' size='large' tag='Bar' onAction='InsertChart'/>
+                <button id='oscLine' label='Line' size='large' tag='Line' onAction='InsertChart'/>
                 <button id='oscMekko' label='Mekko' size='large' tag='Mekko' onAction='InsertChart'/>
                 <button id='oscGantt' label='Gantt' size='large' tag='Gantt' onAction='InsertChart'/>
-                <button id='oscPie' label='Secteurs' tag='Pie' onAction='InsertChart'/>
-                <button id='oscDoughnut' label='Anneau' tag='Doughnut' onAction='InsertChart'/>
-                <button id='oscScatter' label='Dispersion' tag='Scatter' onAction='InsertChart'/>
-                <button id='oscBubble' label='Bulles' tag='Bubble' onAction='InsertChart'/>
-                <button id='oscSeries' label='Multi-séries' onAction='InsertSeries'/>
+                <button id='oscPie' label='Pie' tag='Pie' onAction='InsertChart'/>
+                <button id='oscDoughnut' label='Doughnut' tag='Doughnut' onAction='InsertChart'/>
+                <button id='oscScatter' label='Scatter' tag='Scatter' onAction='InsertChart'/>
+                <button id='oscBubble' label='Bubble' tag='Bubble' onAction='InsertChart'/>
+                <button id='oscSeries' label='Multi-series' onAction='InsertSeries'/>
               </group>
-              <group id='oscData' label='Données et liens Excel'>
-                <button id='oscEdit' label='Modifier les données' onAction='EditChart'/>
-                <button id='oscImport' label='Importer JSON' onAction='ImportChart'/>
-                <button id='oscConnectors' label='Éditer les connecteurs' onAction='EditConnectors'/>
-                <button id='oscApplyConnector' label='Appliquer le déplacement' onAction='ApplyConnectorMove'/>
-                <button id='oscEndConnectors' label='Terminer les connecteurs' onAction='EndConnectorEditing'/>
-                <button id='oscRefresh' label='Actualiser la sélection' onAction='RefreshChart'/>
-                <button id='oscRefreshAll' label='Actualiser la présentation' onAction='RefreshAll'/>
+              <group id='oscData' label='Data &amp; Excel Links'>
+                <button id='oscEdit' label='Edit Data' onAction='EditChart'/>
+                <button id='oscImport' label='Import JSON' onAction='ImportChart'/>
+                <button id='oscConnectors' label='Edit Connectors' onAction='EditConnectors'/>
+                <button id='oscApplyConnector' label='Apply Move' onAction='ApplyConnectorMove'/>
+                <button id='oscEndConnectors' label='Finish Connectors' onAction='EndConnectorEditing'/>
+                <button id='oscRefresh' label='Refresh Selection' onAction='RefreshChart'/>
+                <button id='oscRefreshAll' label='Refresh Presentation' onAction='RefreshAll'/>
               </group>
-              <group id='oscInfo' label='Version 0.1'><button id='oscAbout' label='À propos / limites' onAction='About'/></group>
+              <group id='oscInfo' label='Version 0.1'><button id='oscAbout' label='About / Limitations' onAction='About'/></group>
             </tab></tabs></ribbon>" + ContextMenus() + "</customUI>";
         }
         public void OnRibbonLoad(object ribbonUi) { ribbon = ribbonUi; }
@@ -117,17 +117,17 @@ namespace OpenSlideCharts
             {
                 string suffix = i.ToString(System.Globalization.CultureInfo.InvariantCulture);
                 xml.Append("<contextMenu idMso='" + ids[i] + "'><menu id='oscContext" + suffix + "' label='OpenCharts' getVisible='GetChartContextVisible'>");
-                xml.Append("<button id='oscContextData" + suffix + "' label='Modifier les données' onAction='EditChart'/>");
-                xml.Append("<button id='oscContextLinks" + suffix + "' label='Modifier les connecteurs' getVisible='GetWaterfallContextVisible' onAction='EditConnectors'/>");
-                xml.Append("<button id='oscContextDelete" + suffix + "' label='Supprimer ce connecteur' getVisible='GetConnectorContextVisible' onAction='DeleteConnector'/>");
-                xml.Append("<menu id='oscContextCreate" + suffix + "' label='Ajouter un connecteur depuis…' getVisible='GetSegmentContextVisible'>");
-                xml.Append("<button id='oscContextCreateTop" + suffix + "' label='Sommet du segment' onAction='BeginConnectorFromTop'/>");
-                xml.Append("<button id='oscContextCreateBottom" + suffix + "' label='Pied du segment' onAction='BeginConnectorFromBottom'/>");
-                xml.Append("<button id='oscContextCreateOutput" + suffix + "' label='Cumul de la colonne' onAction='BeginConnectorFromOutput'/></menu>");
-                xml.Append("<button id='oscContextZeroTop" + suffix + "' label='Placer le sommet à zéro' getVisible='GetSegmentContextVisible' onAction='PinSegmentTopZero'/>");
-                xml.Append("<button id='oscContextZeroBottom" + suffix + "' label='Placer le pied à zéro' getVisible='GetSegmentContextVisible' onAction='PinSegmentBottomZero'/>");
-                xml.Append("<button id='oscContextCancelCreate" + suffix + "' label='Annuler l’ajout du connecteur' getVisible='GetPendingConnectorVisible' onAction='CancelConnectorCreation'/>");
-                xml.Append("<button id='oscContextFinish" + suffix + "' label='Terminer les connecteurs' getVisible='GetFinishContextVisible' onAction='EndConnectorEditing'/>");
+                xml.Append("<button id='oscContextData" + suffix + "' label='Edit Data' onAction='EditChart'/>");
+                xml.Append("<button id='oscContextLinks" + suffix + "' label='Edit Connectors' getVisible='GetWaterfallContextVisible' onAction='EditConnectors'/>");
+                xml.Append("<button id='oscContextDelete" + suffix + "' label='Delete This Connector' getVisible='GetConnectorContextVisible' onAction='DeleteConnector'/>");
+                xml.Append("<menu id='oscContextCreate" + suffix + "' label='Add Connector From…' getVisible='GetSegmentContextVisible'>");
+                xml.Append("<button id='oscContextCreateTop" + suffix + "' label='Segment Top' onAction='BeginConnectorFromTop'/>");
+                xml.Append("<button id='oscContextCreateBottom" + suffix + "' label='Segment Bottom' onAction='BeginConnectorFromBottom'/>");
+                xml.Append("<button id='oscContextCreateOutput" + suffix + "' label='Column Running Total' onAction='BeginConnectorFromOutput'/></menu>");
+                xml.Append("<button id='oscContextZeroTop" + suffix + "' label='Set Segment Top to Zero' getVisible='GetSegmentContextVisible' onAction='PinSegmentTopZero'/>");
+                xml.Append("<button id='oscContextZeroBottom" + suffix + "' label='Set Segment Bottom to Zero' getVisible='GetSegmentContextVisible' onAction='PinSegmentBottomZero'/>");
+                xml.Append("<button id='oscContextCancelCreate" + suffix + "' label='Cancel Adding Connector' getVisible='GetPendingConnectorVisible' onAction='CancelConnectorCreation'/>");
+                xml.Append("<button id='oscContextFinish" + suffix + "' label='Finish Connectors' getVisible='GetFinishContextVisible' onAction='EndConnectorEditing'/>");
                 xml.Append("</menu></contextMenu>");
             }
             return xml.Append("</contextMenus>").ToString();
@@ -165,7 +165,7 @@ namespace OpenSlideCharts
         {
             OfficeChartSelection selected = ContextSelection();
             if (events == null || slideEditor == null || selected == null || selected.Primitive == null || selected.Primitive.Role != "WATERFALL_SEGMENT")
-                throw new InvalidOperationException("Sélectionnez un segment de cascade.");
+                throw new InvalidOperationException("Select a waterfall segment.");
             return selected;
         }
         private void SegmentCommand(string edge, bool pin)
@@ -188,7 +188,7 @@ namespace OpenSlideCharts
             {
                 OfficeChartSelection selected = ContextSelection();
                 if (slideEditor == null || events == null || selected == null || selected.Primitive == null || selected.Primitive.Role != "WATERFALL_CONNECTOR")
-                    throw new InvalidOperationException("Sélectionnez un connecteur de cascade.");
+                    throw new InvalidOperationException("Select a waterfall connector.");
                 slideEditor.DeleteConnector(ActiveSlide(), selected.Chart, selected.Primitive.EntityId);
                 InvalidateRibbon();
             });
@@ -232,9 +232,9 @@ namespace OpenSlideCharts
         {
             Run(delegate
             {
-                if (slideEditor == null || events == null) throw new InvalidOperationException("Événements PowerPoint indisponibles : " + interactionError);
+                if (slideEditor == null || events == null) throw new InvalidOperationException("PowerPoint events are unavailable: " + interactionError);
                 OfficeChartSelection selection = OfficeChartSelection.Resolve((object)app.ActiveWindow.Selection);
-                if (selection == null) throw new InvalidOperationException("Sélectionnez une cascade ou un de ses connecteurs.");
+                if (selection == null) throw new InvalidOperationException("Select a waterfall chart or one of its connectors.");
                 string id = selection.Primitive != null && selection.Primitive.Role == "WATERFALL_CONNECTOR" ? selection.Primitive.EntityId : null;
                 slideEditor.Start(ActiveSlide(), selection.Chart, id);
                 InvalidateRibbon();
@@ -282,10 +282,10 @@ namespace OpenSlideCharts
         {
             Run(delegate
             {
-                using (var dialog = new OpenFileDialog { Title = "Importer des données OpenSlideCharts", Filter = "Graphique JSON|*.json", CheckFileExists = true })
+                using (var dialog = new OpenFileDialog { Title = "Import OpenSlideCharts Data", Filter = "JSON chart|*.json", CheckFileExists = true })
                 {
                     if (dialog.ShowDialog() != DialogResult.OK) return;
-                    if (new FileInfo(dialog.FileName).Length > 1048576) throw new InvalidDataException("Fichier JSON limité à 1 Mio.");
+                    if (new FileInfo(dialog.FileName).Length > 1048576) throw new InvalidDataException("JSON files are limited to 1 MiB.");
                     ChartSpec spec = new JavaScriptSerializer().Deserialize<ChartSpec>(File.ReadAllText(dialog.FileName));
                     InsertSpec(spec);
                 }
@@ -320,7 +320,7 @@ namespace OpenSlideCharts
         {
             Run(delegate
             {
-                if (app == null || app.Presentations.Count == 0) throw new InvalidOperationException("Ouvrez une présentation.");
+                if (app == null || app.Presentations.Count == 0) throw new InvalidOperationException("Open a presentation.");
                 int updated = 0; List<string> errors = new List<string>();
                 app.StartNewUndoEntry();
                 dynamic presentation = app.ActivePresentation;
@@ -341,26 +341,26 @@ namespace OpenSlideCharts
                             if (String.IsNullOrWhiteSpace(spec.WorkbookPath)) continue;
                             OfficeRenderer.Replace((object)slide, target, ExcelLink.Read(spec)); updated++;
                         }
-                        catch (Exception ex) { errors.Add("Diapositive " + i + " : " + ex.Message); }
+                        catch (Exception ex) { errors.Add("Slide " + i + ": " + ex.Message); }
                     }
                 }
-                MessageBox.Show(updated + " graphique(s) actualisé(s)." + (errors.Count > 0 ? "\n\n" + String.Join("\n", errors.ToArray()) : ""), "OpenSlideCharts", MessageBoxButtons.OK, errors.Count > 0 ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
+                MessageBox.Show(updated + " chart(s) refreshed." + (errors.Count > 0 ? "\n\n" + String.Join("\n", errors.ToArray()) : ""), "OpenSlideCharts", MessageBoxButtons.OK, errors.Count > 0 ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
             });
         }
         public void About(object control)
         {
-            MessageBox.Show("OpenSlideCharts 0.1 — sources sous licence MIT.\n\nPrototype indépendant, non affilié à think-cell.\n10 types de graphiques en formes PowerPoint éditables.\nColonnes, barres et courbes : jusqu'à 8 séries.\nSecteurs/anneaux : rotation, ordre, trou et éclatement depuis l'éditeur.\nDispersion/bulles : axes, groupes, tailles, partitions et tendances linéaires.\nExcel : lecture des données enregistrées, actualisation manuelle.\n\nLimites : Mekko à 2 segments ; Gantt en jours relatifs ; placement automatique général et édition des objets think-cell absents.\nLa réédition régénère les formes : personnalisations manuelles et animations ne sont pas conservées.\nLa parité think-cell reste à réaliser.", "OpenSlideCharts", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("OpenSlideCharts 0.1 — source code licensed under the GNU General Public License v3.0.\n\nIndependent prototype, not affiliated with think-cell.\n10 chart types built from editable PowerPoint shapes.\nColumn, bar and line charts: up to 8 series.\nPie and doughnut: rotation, order, hole and explosion from the editor.\nScatter and bubble: axes, groups, sizes, partitions and linear trend lines.\nGantt: calendar dates, timeline scales, weekends and milestones.\nExcel: reads saved data; refresh is manual.\n\nLimitations: Mekko is limited to 2 segments; no general automatic placement; think-cell objects cannot be edited.\nRe-editing regenerates the shapes: manual formatting and animations are not kept.\nFull think-cell parity has not been reached.", "OpenSlideCharts", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         private object ActiveSlide()
         {
-            if (app == null || app.Presentations.Count == 0 || app.ActiveWindow == null) throw new InvalidOperationException("Ouvrez une présentation et sélectionnez une diapositive en mode Normal.");
+            if (app == null || app.Presentations.Count == 0 || app.ActiveWindow == null) throw new InvalidOperationException("Open a presentation and select a slide in Normal view.");
             try { return (object)app.ActiveWindow.View.Slide; }
-            catch { throw new InvalidOperationException("Sélectionnez une diapositive en mode Normal."); }
+            catch { throw new InvalidOperationException("Select a slide in Normal view."); }
         }
         private object SelectedChart()
         {
             OfficeChartSelection selected = OfficeChartSelection.Resolve((object)app.ActiveWindow.Selection);
-            if (selected == null) throw new InvalidOperationException("Sélectionnez un graphique OpenSlideCharts ou une de ses formes.");
+            if (selected == null) throw new InvalidOperationException("Select an OpenSlideCharts chart or one of its shapes.");
             return selected.Chart;
         }
         private static void Run(Action action)
