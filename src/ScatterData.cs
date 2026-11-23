@@ -10,13 +10,13 @@ namespace OpenSlideCharts
         // A populated Size column selects Bubble, as in the documented datasheet workflow.
         public static ChartSpec ReplacePoints(ChartSpec source, List<ScatterPoint> points)
         {
-            if (source == null || source.Scatter == null) throw new ArgumentException("Modèle de dispersion/bulles requis.");
+            if (source == null || source.Scatter == null) throw new ArgumentException("A scatter/bubble chart is required.");
             if (points == null) throw new ArgumentNullException("points");
             ChartSpec result = ChartStorage.Clone(source);
             result.Scatter.Points = new List<ScatterPoint>(); bool sizes = false;
             foreach (ScatterPoint point in points)
             {
-                if (point == null) throw new ArgumentException("Point absent.");
+                if (point == null) throw new ArgumentException("Missing point.");
                 result.Scatter.Points.Add(new ScatterPoint { Label = point.Label, Group = point.Group, Color = point.Color,
                     Marker = point.Marker, X = point.X, Y = point.Y, Size = point.Size });
                 sizes |= point.Size.HasValue;
@@ -35,9 +35,9 @@ namespace OpenSlideCharts
 
         public static ChartSpec ReadCells(ChartSpec source, object[,] cells)
         {
-            if (source == null || source.Scatter == null) throw new ArgumentException("Modèle de dispersion/bulles requis.");
+            if (source == null || source.Scatter == null) throw new ArgumentException("A scatter/bubble chart is required.");
             if (cells == null || cells.GetLength(0) < 1 || cells.GetLength(0) > 1000 || cells.GetLength(1) < 3 || cells.GetLength(1) > 7)
-                throw new ArgumentException("Dispersion/bulles : 1 à 1000 lignes, 3 à 7 colonnes (Libellé, X, Y, Taille, Groupe, Couleur, Marqueur), sans en-tête.");
+                throw new ArgumentException("Scatter/bubble: 1 to 1000 rows, 3 to 7 columns (Label, X, Y, Size, Group, Color, Marker), without a header.");
             int firstRow = cells.GetLowerBound(0), firstColumn = cells.GetLowerBound(1), columns = cells.GetLength(1);
             var points = new List<ScatterPoint>();
             for (int r = firstRow; r <= cells.GetUpperBound(0); r++)

@@ -176,7 +176,7 @@ namespace OpenSlideCharts
             if (!InterfaceHandlesVisible || !dropped.SameGeometry(projection)) return;
             PointF local = dropped.ToChart(point);
             WaterfallHit hit = scene.FindNearest(local.X, local.Y, 14);
-            if (hit.Candidates.Count == 0) { LastMessage = "Déposez l'extrémité près d'un niveau de colonne."; return; }
+            if (hit.Candidates.Count == 0) { LastMessage = "Drop the end near a column level."; return; }
             if (hit.IsAmbiguous)
             {
                 var choices = new CommandMenu();
@@ -189,9 +189,9 @@ namespace OpenSlideCharts
                         Run(delegate { RequireCommandChart(); CommitInterfaceTarget(target, first); });
                     });
                 }
-                choices.Items.Add("Annuler le déplacement");
+                choices.Items.Add("Cancel Move");
                 HideInterfaceHandles(); ShowCommandMenu(choices);
-                LastMessage = "Plusieurs niveaux coïncident. Choisissez l'ancrage.";
+                LastMessage = "Several levels coincide. Choose the anchor.";
                 return;
             }
             CommitInterfaceTarget(hit.Target, first);

@@ -34,7 +34,7 @@ namespace OpenSlideCharts
             {
                 pendingSource = SegmentTarget(columnId, segmentId, edge);
                 SelectSegment(columnId, segmentId);
-                LastMessage = "Sélectionnez le segment d'arrivée du connecteur.";
+                LastMessage = "Select the segment where the connector ends.";
             }
             catch { Stop(false); throw; }
         }
@@ -42,10 +42,10 @@ namespace OpenSlideCharts
         public void CompleteSegmentConnector(object chartObject, string columnId, string segmentId, string edge, bool constrain = true)
         {
             RequireCommandChart();
-            if (!SameObject(chartObject, chart)) throw new InvalidOperationException("Choisissez une destination dans le même graphique.");
-            if (!AddingConnector) throw new InvalidOperationException("Choisissez d'abord l'origine du connecteur.");
+            if (!SameObject(chartObject, chart)) throw new InvalidOperationException("Choose a destination in the same chart.");
+            if (!AddingConnector) throw new InvalidOperationException("Choose the connector's starting point first.");
             WaterfallTarget source = pendingSource, target = SegmentTarget(columnId, segmentId, edge);
-            if (WaterfallInteraction.SameAnchor(source.Anchor, target.Anchor)) throw new ArgumentException("Choisissez deux niveaux distincts.");
+            if (WaterfallInteraction.SameAnchor(source.Anchor, target.Anchor)) throw new ArgumentException("Choose two different levels.");
             WaterfallCommandAnalysis analysis = WaterfallCommands.AnalyzeAddConnector(spec.Waterfall, source.Anchor, target.Anchor, constrain);
             ExecuteWithRepair(analysis, delegate(string release)
             {
@@ -56,7 +56,7 @@ namespace OpenSlideCharts
                 string previousId = currentId;
                 pendingSource = null; currentId = result.ConnectorId;
                 bool before = busy; busy = true;
-                try { Apply(candidate); LastMessage = "Connecteur ajouté ; valeurs e recalculées."; }
+                try { Apply(candidate); LastMessage = "Connector added; e values recalculated."; }
                 catch { pendingSource = source; currentId = previousId; throw; }
                 finally { busy = before; }
             });
@@ -74,7 +74,7 @@ namespace OpenSlideCharts
                 WaterfallCommands.PinZero(candidate.Waterfall, target.Anchor, release);
                 bool before = busy, beforeSuppress = suppressSelection;
                 busy = true; suppressSelection = true;
-                try { Apply(candidate); SelectSegment(columnId, segmentId); LastMessage = "Extrémité du segment ancrée à zéro."; }
+                try { Apply(candidate); SelectSegment(columnId, segmentId); LastMessage = "Segment edge anchored at zero."; }
                 finally { busy = before; suppressSelection = beforeSuppress; }
             });
         }
@@ -89,7 +89,7 @@ namespace OpenSlideCharts
             RequireCommandChart();
             WaterfallTarget result = scene.Targets.Find(delegate(WaterfallTarget t)
             { return t.ColumnId == columnId && t.Edge == edge && t.Side == "Left" && ((edge == "Base" || edge == "Output") || t.SegmentId == segmentId); });
-            if (result == null) throw new ArgumentException("Ce niveau de segment n'existe plus.");
+            if (result == null) throw new ArgumentException("This segment level no longer exists.");
             return result;
         }
         private void SelectSegment(string columnId, string segmentId)
@@ -105,14 +105,14 @@ namespace OpenSlideCharts
                     Primitive item = layout.Items[index];
                     if (item.Role == "WATERFALL_SEGMENT" && item.ColumnId == columnId && item.SegmentId == segmentId) { shape.Select(); return; }
                 }
-                throw new InvalidOperationException("Le segment natif n'est plus disponible.");
+                throw new InvalidOperationException("The native segment is no longer available.");
             }
             finally { busy = before; }
         }
         private void RequireCommandChart()
         {
             if (!Active || !ChartExists() || !IsActiveSlide() || !FrameUnchanged() || !Upright(chart))
-                throw new InvalidOperationException("La sélection ou le cadre a changé. Recommencez la commande.");
+                throw new InvalidOperationException("The selection or frame changed. Run the command again.");
         }
         private void PollConnectorCreation()
         {
@@ -134,18 +134,18 @@ namespace OpenSlideCharts
             if (selected.Primitive == null || selected.Primitive.Role != "WATERFALL_SEGMENT") return;
             Primitive destination = selected.Primitive; object destinationChart = selected.Chart; string session = token;
             var choices = new CommandMenu();
-            AddDestination(choices, destinationChart, session, destination, "Top", "Sommet du segment");
-            AddDestination(choices, destinationChart, session, destination, "Bottom", "Pied du segment");
-            AddDestination(choices, destinationChart, session, destination, "Output", "Cumul de la colonne");
-            choices.Items.Add("Annuler l'ajout", null, delegate { Run(delegate { CancelConnectorCreation(); }); });
+            AddDestination(choices, destinationChart, session, destination, "Top", "Segment Top");
+            AddDestination(choices, destinationChart, session, destination, "Bottom", "Segment Bottom");
+            AddDestination(choices, destinationChart, session, destination, "Output", "Column Cumulative");
+            choices.Items.Add("Cancel Adding Connector", null, delegate { Run(delegate { CancelConnectorCreation(); }); });
             ShowCommandMenu(choices);
-            LastMessage = "Choisissez le niveau d'arrivée et le type de connexion.";
+            LastMessage = "Choose the end level and the connection type.";
         }
         private void AddDestination(ContextMenuStrip choices, object destinationChart, string session, Primitive destination, string edge, string label)
         {
             var entry = new ToolStripMenuItem(label); entry.DropDown = new CommandSubmenu();
-            entry.DropDownItems.Add("Égaliser les niveaux", null, delegate { if (!Active || token != session) return; Run(delegate { choosing = false; CompleteSegmentConnector(destinationChart, destination.ColumnId, destination.SegmentId, edge, true); }); });
-            entry.DropDownItems.Add("Connecteur libre", null, delegate { if (!Active || token != session) return; Run(delegate { choosing = false; CompleteSegmentConnector(destinationChart, destination.ColumnId, destination.SegmentId, edge, false); }); });
+            entry.DropDownItems.Add("Equalize Levels", null, delegate { if (!Active || token != session) return; Run(delegate { choosing = false; CompleteSegmentConnector(destinationChart, destination.ColumnId, destination.SegmentId, edge, true); }); });
+            entry.DropDownItems.Add("Free Connector", null, delegate { if (!Active || token != session) return; Run(delegate { choosing = false; CompleteSegmentConnector(destinationChart, destination.ColumnId, destination.SegmentId, edge, false); }); });
             choices.Items.Add(entry);
         }
         private void ExecuteWithRepair(WaterfallCommandAnalysis analysis, Action<string> commit)
@@ -154,28 +154,28 @@ namespace OpenSlideCharts
             if (analysis.AutoPinIds.Count == 1) { commit(analysis.AutoPinIds[0]); return; }
             if (analysis.AutoPinIds.Count == 0)
                 throw new InvalidOperationException(analysis.StrictFailure == WaterfallSolveFailure.Inconsistent
-                    ? "Ancrages incompatibles : modifiez les ancrages ou choisissez un connecteur libre."
-                    : "La commande exige un ancrage supplémentaire dans l'éditeur des données.");
+                    ? "Conflicting anchors: change the anchors or choose a free connector."
+                    : "This command requires an additional anchor in the data editor.");
             var choices = new CommandMenu(); string session = token;
             foreach (string item in analysis.AutoPinIds)
             {
                 string id = item; WaterfallPin pin = spec.Waterfall.Pins.Find(delegate(WaterfallPin p) { return p.Id == id; });
-                choices.Items.Add("Déplacer l'ancrage automatique : " + AnchorLabel(pin.Anchor), null, delegate
+                choices.Items.Add("Move Automatic Anchor: " + AnchorLabel(pin.Anchor), null, delegate
                 {
                     if (!Active || token != session) return;
                     Run(delegate { choosing = false; commit(id); });
                 });
             }
-            choices.Items.Add("Conserver les ancrages");
+            choices.Items.Add("Keep Anchors");
             ShowCommandMenu(choices);
-            LastMessage = "Plusieurs ancrages automatiques peuvent être déplacés. Choisissez lequel.";
+            LastMessage = "Several automatic anchors can be moved. Choose one.";
         }
         private string AnchorLabel(WaterfallAnchor anchor)
         {
             WaterfallTarget target = scene.Targets.Find(delegate(WaterfallTarget t) { return WaterfallInteraction.SameAnchor(t.Anchor, anchor); });
             if (target != null) return TargetLabel(target);
             WaterfallColumn column = spec.Waterfall.Columns.Find(delegate(WaterfallColumn c) { return c.Id == anchor.ColumnId; });
-            return column.Label + " — niveau lié";
+            return column.Label + " — linked level";
         }
         private void ShowCommandMenu(ContextMenuStrip choices)
         {

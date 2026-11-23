@@ -58,20 +58,20 @@ namespace OpenSlideCharts
             // top-level shape from its slide before traversing GroupItems again.
             dynamic requested = chartObject;
             if ((int)requested.Child != 0 || !SameObject((object)requested.Parent, slideObject))
-                throw new ArgumentException("Le graphique n'appartient pas à cette diapositive.");
+                throw new ArgumentException("The chart does not belong to this slide.");
             int requestedId = requested.Id; object currentChart = null; dynamic currentSlide = slideObject;
             for (int i = 1; i <= (int)currentSlide.Shapes.Count; i++)
             { dynamic item = currentSlide.Shapes.Item(i); if ((int)item.Id == requestedId) { currentChart = item; break; } }
-            if (currentChart == null) throw new InvalidOperationException("Le graphique n'existe plus sur cette diapositive.");
+            if (currentChart == null) throw new InvalidOperationException("The chart no longer exists on this slide.");
             chartObject = currentChart;
             bool previousBusy = busy; busy = true;
             try
             {
                 dynamic group = chartObject;
                 ChartSpec candidate = ChartStorage.Read(chartObject);
-                if (candidate.Waterfall == null) throw new ArgumentException("Sélectionnez une cascade à connecteurs.");
+                if (candidate.Waterfall == null) throw new ArgumentException("Select a waterfall with connectors.");
                 if ((int)group.Child != 0 || !Upright(chartObject))
-                    throw new NotSupportedException("L'édition des connecteurs exige un groupe sans rotation ni retournement, directement sur la diapositive.");
+                    throw new NotSupportedException("Connector editing requires a group with no rotation or flip, placed directly on the slide.");
                 scene = WaterfallScene.Build(candidate.Waterfall, (double)group.Width, (double)group.Height);
                 chart = chartObject; slide = slideObject; spec = candidate;
                 left = group.Left; top = group.Top; width = group.Width; height = group.Height;
@@ -87,7 +87,7 @@ namespace OpenSlideCharts
                 if (!segmentsTagged || (!tagged && scene.Connectors.Count > 0)) chart = OfficeRenderer.Replace(slide, chart, spec);
                 chartId = (int)((dynamic)chart).Id;
                 BuildHandles();
-                leaveRequested = false; timer.Start(); LastMessage = "Déplacez une extrémité du connecteur vers un niveau de colonne.";
+                leaveRequested = false; timer.Start(); LastMessage = "Drag a connector end to a column level.";
             }
             catch (Exception error)
             {
@@ -119,7 +119,7 @@ namespace OpenSlideCharts
                 lines.Add(item.EntityId, new EditLine { Name = shape.Name, ConnectorId = item.EntityId, Shape = shape,
                     ShapeId = shape.Id, Original = ConnectorEndpoints.Read((object)shape) });
             }
-            if (lines.Count != scene.Connectors.Count) throw new InvalidOperationException("Les connecteurs natifs ne correspondent plus aux données enregistrées. Rééditez les données pour régénérer le graphique.");
+            if (lines.Count != scene.Connectors.Count) throw new InvalidOperationException("The native connectors no longer match the saved data. Edit the data again to regenerate the chart.");
             if (currentId == null || !lines.ContainsKey(currentId)) currentId = scene.Connectors.Count == 0 ? null : scene.Connectors[0].Id;
             if (currentId != null && !suppressSelection) ((dynamic)lines[currentId].Shape).Select();
         }
@@ -194,7 +194,7 @@ namespace OpenSlideCharts
                 dynamic group = chart;
                 if (!IsActiveSlide()) { force = true; suppressSelection = true; leaveRequested = true; }
                 if (!FrameUnchanged() || !Upright(chart))
-                { LastMessage = "Session terminée : cadre modifié."; Stop(false); return false; }
+                { LastMessage = "Session ended: the frame changed."; Stop(false); return false; }
                 EditLine line = lines[currentId]; dynamic live = FindLine(line.ShapeId);
                 // A stationary pause with the mouse button held is still a drag.
                 // Replacing its group would destroy PowerPoint's live drag target.
@@ -203,7 +203,7 @@ namespace OpenSlideCharts
                 if ((object)live == null)
                 {
                     ChartSpec candidate = ChartStorage.Clone(spec); WaterfallInteraction.DeleteConnector(candidate.Waterfall, currentId);
-                    Apply(candidate); LastMessage = "Connecteur supprimé ; sommes recalculées."; return true;
+                    Apply(candidate); LastMessage = "Connector deleted; sums recalculated."; return true;
                 }
                 ConnectorEndpoints moved = ConnectorEndpoints.Read((object)live);
                 if (moved.Difference(line.Original) <= .2) { line.Observed = null; line.StableTicks = 0; return false; }
@@ -214,9 +214,9 @@ namespace OpenSlideCharts
                 }
                 bool first = Math.Max(Math.Abs(moved.X1 - line.Original.X1), Math.Abs(moved.Y1 - line.Original.Y1)) > .2;
                 bool second = Math.Max(Math.Abs(moved.X2 - line.Original.X2), Math.Abs(moved.Y2 - line.Original.Y2)) > .2;
-                if (first && second) throw new ArgumentException("Déplacez une seule extrémité du connecteur à la fois.");
+                if (first && second) throw new ArgumentException("Move only one connector end at a time.");
                 WaterfallHit hit = scene.FindNearest((first ? moved.X1 : moved.X2) - left, (first ? moved.Y1 : moved.Y2) - top, 14);
-                if (hit.Candidates.Count == 0) throw new ArgumentException("Déposez l'extrémité près d'une base, d'un cumul ou du bord d'un segment.");
+                if (hit.Candidates.Count == 0) throw new ArgumentException("Drop the end near a base, a cumulative level or a segment edge.");
                 if (hit.IsAmbiguous) { ChooseTarget(hit, first); return false; }
                 CommitTarget(hit.Target, first); return true;
             }
@@ -234,17 +234,17 @@ namespace OpenSlideCharts
         {
             ChartSpec candidate = ChartStorage.Clone(spec);
             WaterfallInteraction.Reattach(candidate.Waterfall, currentId, first, target.Anchor);
-            Apply(candidate); LastMessage = "Connecteur rattaché ; valeurs e recalculées.";
+            Apply(candidate); LastMessage = "Connector reattached; e values recalculated.";
         }
         public void DeleteConnector(object slideObject, object chartObject, string connectorId)
         {
             if (!Active || !SameObject(chart, chartObject)) Start(slideObject, chartObject, connectorId);
             else ProcessPendingEdits(true);
-            if (!Active || choosing) throw new InvalidOperationException("Terminez le déplacement en cours avant de supprimer un connecteur.");
+            if (!Active || choosing) throw new InvalidOperationException("Finish the current move before deleting a connector.");
             ChartSpec candidate = ChartStorage.Clone(spec);
             WaterfallInteraction.DeleteConnector(candidate.Waterfall, connectorId);
             bool previous = busy; busy = true;
-            try { Apply(candidate); LastMessage = "Connecteur supprimé ; sommes recalculées."; }
+            try { Apply(candidate); LastMessage = "Connector deleted; sums recalculated."; }
             finally { busy = previous; }
         }
         private void Apply(ChartSpec candidate)
@@ -271,18 +271,18 @@ namespace OpenSlideCharts
                     finally { busy = false; }
                 });
             }
-            choices.Items.Add("Annuler le déplacement");
+            choices.Items.Add("Cancel Move");
             choices.Closed += delegate { choosing = false; if (!selected && Active) { bool before = busy; busy = true; suppressSelection = true; try { RestoreChart(); } finally { busy = before; suppressSelection = false; } } };
             choices.Show(Cursor.Position);
-            LastMessage = "Plusieurs niveaux coïncident. Choisissez l'ancrage.";
+            LastMessage = "Several levels coincide. Choose the anchor.";
         }
         private string TargetLabel(WaterfallTarget target)
         {
             WaterfallColumn column = spec.Waterfall.Columns.Find(delegate(WaterfallColumn c) { return c.Id == target.ColumnId; });
-            string edge = target.Edge == "Base" ? "Base" : target.Edge == "Output" ? "Cumul" : target.Edge == "Top" ? "Sommet" : "Pied";
+            string edge = target.Edge == "Base" ? "Base" : target.Edge == "Output" ? "Cumulative" : target.Edge == "Top" ? "Top" : "Bottom";
             int index = target.SegmentId == null ? -1 : column.Segments.FindIndex(delegate(WaterfallSegment s) { return s.Id == target.SegmentId; });
             int row = index < 0 ? -1 : column.Segments[index].SheetRow >= 0 ? column.Segments[index].SheetRow : index;
-            return column.Label + " — " + edge + (row < 0 ? "" : " du segment " + (row + 1));
+            return column.Label + " — " + edge + (row < 0 ? "" : " of segment " + (row + 1));
         }
         [Obsolete("Use the native Office context menu supplied by Connect.GetCustomUI.")]
         public void ShowContextMenu(object selectionObject, ref bool cancel)
@@ -299,11 +299,11 @@ namespace OpenSlideCharts
                 if (menu != null) menu.Dispose(); menu = new ContextMenuStrip();
                 string selectedId = connector;
                 string selectedSession = Active && selection != null && SameObject(selection.Chart, chart) ? token : null;
-                menu.Items.Add("Modifier les données", null, delegate { Run(delegate { object current = Active && token == selectedSession ? Stop(true) : selectedChart; ((dynamic)current).Select(); editData(); }); });
-                menu.Items.Add("Modifier les connecteurs", null, delegate { Run(delegate { object current = Active && token == selectedSession ? Stop(true) : selectedChart; Start((object)app.ActiveWindow.View.Slide, current, selectedId); }); });
+                menu.Items.Add("Edit Data", null, delegate { Run(delegate { object current = Active && token == selectedSession ? Stop(true) : selectedChart; ((dynamic)current).Select(); editData(); }); });
+                menu.Items.Add("Edit Connectors", null, delegate { Run(delegate { object current = Active && token == selectedSession ? Stop(true) : selectedChart; Start((object)app.ActiveWindow.View.Slide, current, selectedId); }); });
                 if (connector != null)
-                    menu.Items.Add("Supprimer ce connecteur", null, delegate { Run(delegate { if (!Active || token != selectedSession) Start((object)app.ActiveWindow.View.Slide, selectedChart, selectedId); ChartSpec candidate = ChartStorage.Clone(spec); WaterfallInteraction.DeleteConnector(candidate.Waterfall, selectedId); busy = true; try { Apply(candidate); } finally { busy = false; } }); });
-                if (Active) menu.Items.Add("Terminer l'édition des connecteurs", null, delegate { Run(delegate { Stop(true, true); }); });
+                    menu.Items.Add("Delete This Connector", null, delegate { Run(delegate { if (!Active || token != selectedSession) Start((object)app.ActiveWindow.View.Slide, selectedChart, selectedId); ChartSpec candidate = ChartStorage.Clone(spec); WaterfallInteraction.DeleteConnector(candidate.Waterfall, selectedId); busy = true; try { Apply(candidate); } finally { busy = false; } }); });
+                if (Active) menu.Items.Add("Finish Connectors", null, delegate { Run(delegate { Stop(true, true); }); });
                 cancel = true; menu.Show(Cursor.Position);
             }
             catch (Exception error) { LastMessage = Describe(error); }
@@ -313,7 +313,7 @@ namespace OpenSlideCharts
         private static string Describe(Exception error)
         {
             var solve = error as WaterfallSolveException;
-            if (solve != null) return solve.Failure == WaterfallSolveFailure.Inconsistent ? "Ancrages incompatibles : les contraintes manuelles sont conservées." : "La modification exige un ancrage supplémentaire. Utilisez l'éditeur des données.";
+            if (solve != null) return solve.Failure == WaterfallSolveFailure.Inconsistent ? "Conflicting anchors: the manual constraints were kept." : "This change requires an additional anchor. Use the data editor.";
             return error.Message;
         }
         private static bool IsBusy(COMException error)

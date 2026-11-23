@@ -12,13 +12,13 @@ namespace OpenSlideCharts
         public List<int> WeekendDays = new List<int> { 0, 6 };
         public List<GanttScale> Scales = new List<GanttScale>();
         public List<GanttActivity> Activities = new List<GanttActivity>();
-        public GanttActivity MilestoneRow = new GanttActivity { Id = "__milestones", Label = "Jalons" };
+        public GanttActivity MilestoneRow = new GanttActivity { Id = "__milestones", Label = "Milestones" };
         public List<GanttDateAnchor> DateAnchors = new List<GanttDateAnchor>();
         public List<GanttItem> Items = new List<GanttItem>();
         public List<GanttShade> Shades = new List<GanttShade>();
         public List<GanttLink> Links = new List<GanttLink>();
         public bool ShowResponsible, ShowRemark;
-        public string ActivityHeader = "Activité", ResponsibleHeader = "Responsable", RemarkHeader = "Remarque";
+        public string ActivityHeader = "Activity", ResponsibleHeader = "Owner", RemarkHeader = "Remark";
         public double LabelFraction = .28, FontSize = 10;
     }
     public sealed class GanttScale
@@ -59,14 +59,14 @@ namespace OpenSlideCharts
             if (start.Year == 9999 && start.Month > 9) start = new DateTime(9999, 10, 1);
             DateTime end = start.Year == 9999 && start.Month == 10 ? new DateTime(9999, 12, 31) : start.AddMonths(3).AddDays(-1);
             GanttSpec g = new GanttSpec { StartDate = Iso(start), EndDate = Iso(end) };
-            g.Activities.Add(new GanttActivity { Id = "design", Label = "Conception", Responsible = "Produit" });
-            g.Activities.Add(new GanttActivity { Id = "build", Label = "Réalisation", Responsible = "Équipe" });
-            g.Activities.Add(new GanttActivity { Id = "release", Label = "Livraison" });
+            g.Activities.Add(new GanttActivity { Id = "design", Label = "Design", Responsible = "Product" });
+            g.Activities.Add(new GanttActivity { Id = "build", Label = "Build", Responsible = "Team" });
+            g.Activities.Add(new GanttActivity { Id = "release", Label = "Delivery" });
             int days = (end - start).Days;
-            g.Items.Add(new GanttItem { Id = "a", RowId = "design", StartDate = Iso(start.AddDays(2)), EndDate = Iso(start.AddDays(days / 3)), Label = "Étude" });
-            g.Items.Add(new GanttItem { Id = "b", RowId = "build", Kind = "Chevron", StartDate = Iso(start.AddDays(days / 3 + 1)), EndDate = Iso(start.AddDays(days * 2 / 3)), Label = "Développement", Color = "#468C75" });
-            g.Items.Add(new GanttItem { Id = "m", RowId = "release", Kind = "Milestone", StartDate = Iso(start.AddDays(days * 2 / 3 + 1)), Label = "Version", Color = "#C05A50" });
-            return new ChartSpec { Kind = "Gantt", Title = "Calendrier du projet", Gantt = g };
+            g.Items.Add(new GanttItem { Id = "a", RowId = "design", StartDate = Iso(start.AddDays(2)), EndDate = Iso(start.AddDays(days / 3)), Label = "Analysis" });
+            g.Items.Add(new GanttItem { Id = "b", RowId = "build", Kind = "Chevron", StartDate = Iso(start.AddDays(days / 3 + 1)), EndDate = Iso(start.AddDays(days * 2 / 3)), Label = "Development", Color = "#468C75" });
+            g.Items.Add(new GanttItem { Id = "m", RowId = "release", Kind = "Milestone", StartDate = Iso(start.AddDays(days * 2 / 3 + 1)), Label = "Release", Color = "#C05A50" });
+            return new ChartSpec { Kind = "Gantt", Title = "Project Schedule", Gantt = g };
         }
         private static string Iso(DateTime value) { return value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture); }
     }

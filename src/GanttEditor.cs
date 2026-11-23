@@ -28,67 +28,67 @@ namespace OpenSlideCharts
             SuspendLayout();
             Spec = ChartStorage.Clone(source ?? GanttSamples.Create()); ChartEngine.Build(Spec, frameWidth, frameHeight);
             width = frameWidth; height = frameHeight;
-            Text = "OpenSlideCharts — Calendrier Gantt"; StartPosition = FormStartPosition.CenterScreen;
+            Text = "OpenSlideCharts — Gantt Calendar"; StartPosition = FormStartPosition.CenterScreen;
             AutoScaleDimensions = new SizeF(96, 96); AutoScaleMode = AutoScaleMode.Dpi;
             ClientSize = new Size(1100, 720); MinimumSize = new Size(850, 600); Font = new Font("Segoe UI", 9);
             var root = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(16), RowCount = 3, ColumnCount = 1 };
             root.RowStyles.Add(new RowStyle(SizeType.Absolute, 64)); root.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); root.RowStyles.Add(new RowStyle(SizeType.Absolute, 44)); Controls.Add(root);
             var header = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1 };
             header.RowStyles.Add(new RowStyle(SizeType.Absolute, 26)); header.RowStyles.Add(new RowStyle(SizeType.Absolute, 32));
-            header.Controls.Add(new Label { Text = "Dates ISO. Plusieurs objets par activité ; la dernière ligne est réservée aux jalons.", Dock = DockStyle.Fill }, 0, 0);
+            header.Controls.Add(new Label { Text = "ISO dates. Several items per activity; the last row is reserved for milestones.", Dock = DockStyle.Fill }, 0, 0);
             title.Dock = DockStyle.Fill; header.Controls.Add(title, 0, 1); root.Controls.Add(header, 0, 0);
             var tabs = new TabControl { Dock = DockStyle.Fill }; root.Controls.Add(tabs, 0, 1);
-            TabPage calendarTab = Tab(tabs, "Calendrier"), activityTab = Tab(tabs, "Activités"), labelTab = Tab(tabs, "Libellés"), itemTab = Tab(tabs, "Objets"), anchorTab = Tab(tabs, "Ancres"), shadeTab = Tab(tabs, "Ombres"), linkTab = Tab(tabs, "Connecteurs"), excelTab = Tab(tabs, "Lien Excel");
+            TabPage calendarTab = Tab(tabs, "Calendar"), activityTab = Tab(tabs, "Activities"), labelTab = Tab(tabs, "Labels"), itemTab = Tab(tabs, "Items"), anchorTab = Tab(tabs, "Anchors"), shadeTab = Tab(tabs, "Shading"), linkTab = Tab(tabs, "Connectors"), excelTab = Tab(tabs, "Excel Link");
             var calendar = Fields(calendarTab, 9, 260);
-            Field(calendar, 0, "Début inclus (AAAA-MM-JJ)", start); Field(calendar, 1, "Fin incluse (AAAA-MM-JJ)", end);
-            Choices(scaleMode, new string[] { "Automatique", "Manuel" }); Field(calendar, 2, "Échelles", scaleMode);
-            Configure(scales, new string[] { "Unité", "Format" }, false);
-            scales.Columns.Insert(0, new DataGridViewCheckBoxColumn { Name = "visible", HeaderText = "Afficher" });
-            scales.Columns.Add(new DataGridViewCheckBoxColumn { Name = "separators", HeaderText = "Séparateurs" });
-            scales.Columns[1].ReadOnly = true; scales.Height = 150; Field(calendar, 3, "Choix manuel (formats facultatifs)", scales);
+            Field(calendar, 0, "Start, inclusive (YYYY-MM-DD)", start); Field(calendar, 1, "End, inclusive (YYYY-MM-DD)", end);
+            Choices(scaleMode, new string[] { "Automatic", "Manual" }); Field(calendar, 2, "Scales", scaleMode);
+            Configure(scales, new string[] { "Unit", "Format" }, false);
+            scales.Columns.Insert(0, new DataGridViewCheckBoxColumn { Name = "visible", HeaderText = "Show" });
+            scales.Columns.Add(new DataGridViewCheckBoxColumn { Name = "separators", HeaderText = "Separators" });
+            scales.Columns[1].ReadOnly = true; scales.Height = 150; Field(calendar, 3, "Manual selection (optional formats)", scales);
             calendar.RowStyles[3].Height = 150;
-            Choices(weekend, new string[] { "Sans ombre", "Ombrés", "Masqués" }); Field(calendar, 4, "Week-ends", weekend);
-            string[] days = { "Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi" };
-            Choices(weekStart, days); Field(calendar, 5, "Premier jour de semaine", weekStart);
+            Choices(weekend, new string[] { "No shading", "Shaded", "Hidden" }); Field(calendar, 4, "Weekends", weekend);
+            string[] days = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
+            Choices(weekStart, days); Field(calendar, 5, "First day of week", weekStart);
             weekendDays.AutoSize = true; weekendDays.WrapContents = true; weekendDays.MinimumSize = new Size(0, 28);
             for (int i = 0; i < days.Length; i++) { weekendChecks[i] = new CheckBox { Text = days[i], AutoSize = true, Margin = new Padding(3, 2, 10, 2) }; weekendDays.Controls.Add(weekendChecks[i]); }
-            Field(calendar, 6, "Jours de week-end", weekendDays); calendar.RowStyles[6].SizeType = SizeType.AutoSize;
-            Field(calendar, 7, "Langue des dates (ex. fr-FR)", culture);
-            var fit = Button("Cadrer sur les objets", delegate { Fit(); }); calendar.Controls.Add(fit, 1, 8);
+            Field(calendar, 6, "Weekend days", weekendDays); calendar.RowStyles[6].SizeType = SizeType.AutoSize;
+            Field(calendar, 7, "Date language (e.g. fr-FR)", culture);
+            var fit = Button("Fit to Items", delegate { Fit(); }); calendar.Controls.Add(fit, 1, 8);
 
-            Configure(activities, new string[] { "ID", "Activité", "Responsable", "Remarque", "Retrait", "Couleur" }, false);
-            activities.Columns.Add(new DataGridViewCheckBoxColumn { HeaderText = "Séparateur", Name = "separator" });
+            Configure(activities, new string[] { "ID", "Activity", "Owner", "Remark", "Indent", "Color" }, false);
+            activities.Columns.Add(new DataGridViewCheckBoxColumn { HeaderText = "Separator", Name = "separator" });
             activities.Columns[0].Visible = false;
-            GridPage(activityTab, activities, "Plusieurs objets peuvent appartenir à une activité. La ligne des jalons reste en bas ; jalons et crochets y sont admis.",
-                new Control[] { Button("Ajouter activité", delegate { activities.Rows.Insert(Math.Max(0, activities.Rows.Count - 1), "row_" + Guid.NewGuid().ToString("N"), "", "", "", "0", "", false); }), Button("Supprimer activité", delegate { DeleteActivities(); }) });
-            Configure(items, new string[] { "ID", "Activité ID", "Type", "Début", "Fin", "Libellé", "Couleur", "Mode dates", "Ancre début", "Ancre fin" }, true);
-            items.Columns[0].Visible = false; items.Columns[1].HeaderText = "Activité";
-            items.Columns.Add(new DataGridViewCheckBoxColumn { HeaderText = "Dates visibles", Name = "dates" });
-            GridPage(itemTab, items, "Barres, flèches de processus, jalons ou crochets. Jours inclus = fin de journée incluse. Instants exacts = fin exclue ; requis avec ancres. Couleurs : #RRGGBB. Défilement horizontal pour les ancres.",
-                new Control[] { Button("Supprimer sélection", delegate { DeleteRows(items); }) });
-            Configure(anchors, new string[] { "ID", "Activité ID", "Indice (0–31)", "Instant ISO" }, true);
-            anchors.Columns[0].Visible = false; anchors.Columns[1].HeaderText = "Activité"; anchors.Columns[2].HeaderText = "Colonne date (1–32)";
-            GridPage(anchorTab, anchors, "Le tableau Excel crée des ancres de dates, jamais des barres implicites. Choisir ces ancres dans l'onglet Objets pour relier les dates. Une ancre appartient à une activité.",
-                new Control[] { Button("Coller tableau Excel", delegate { PasteAnchors(Clipboard.GetText()); }), Button("Supprimer sélection", delegate { DeleteRows(anchors); }) });
-            Configure(shades, new string[] { "Début inclus", "Fin incluse", "Libellé", "Couleur" }, true);
-            GridPage(shadeTab, shades, "Ombres verticales pour congés et autres périodes ; elles ne compressent pas le calendrier.", new Control[] { Button("Supprimer sélection", delegate { DeleteRows(shades); }) });
-            Configure(links, new string[] { "Objet source ID", "Objet cible ID", "Bord source", "Bord cible", "Couleur" }, true);
-            links.Columns[0].HeaderText = "Objet source"; links.Columns[1].HeaderText = "Objet cible";
-            GridPage(linkTab, links, "Connecteurs visuels entre les bords Début ou Fin des objets. Aucun décalage ni recalcul automatique du planning.", new Control[] { Button("Supprimer sélection", delegate { DeleteRows(links); }) });
+            GridPage(activityTab, activities, "Several items can belong to one activity. The milestone row stays at the bottom; only milestones and brackets are allowed there.",
+                new Control[] { Button("Add Activity", delegate { activities.Rows.Insert(Math.Max(0, activities.Rows.Count - 1), "row_" + Guid.NewGuid().ToString("N"), "", "", "", "0", "", false); }), Button("Delete Activity", delegate { DeleteActivities(); }) });
+            Configure(items, new string[] { "ID", "Activity ID", "Type", "Start", "End", "Label", "Color", "Date Mode", "Start Anchor", "End Anchor" }, true);
+            items.Columns[0].Visible = false; items.Columns[1].HeaderText = "Activity";
+            items.Columns.Add(new DataGridViewCheckBoxColumn { HeaderText = "Show Dates", Name = "dates" });
+            GridPage(itemTab, items, "Bars, process arrows, milestones or brackets. Inclusive Days = the end day is included. Exact Times = the end is excluded; required with anchors. Colors: #RRGGBB. Scroll horizontally to see the anchors.",
+                new Control[] { Button("Delete Selection", delegate { DeleteRows(items); }) });
+            Configure(anchors, new string[] { "ID", "Activity ID", "Index (0–31)", "ISO Date/Time" }, true);
+            anchors.Columns[0].Visible = false; anchors.Columns[1].HeaderText = "Activity"; anchors.Columns[2].HeaderText = "Date Column (1–32)";
+            GridPage(anchorTab, anchors, "The Excel table creates date anchors, never implicit bars. Choose these anchors on the Items tab to link the dates. An anchor belongs to one activity.",
+                new Control[] { Button("Paste Excel Table", delegate { PasteAnchors(Clipboard.GetText()); }), Button("Delete Selection", delegate { DeleteRows(anchors); }) });
+            Configure(shades, new string[] { "Start (Inclusive)", "End (Inclusive)", "Label", "Color" }, true);
+            GridPage(shadeTab, shades, "Vertical shading for holidays and other periods; it does not compress the calendar.", new Control[] { Button("Delete Selection", delegate { DeleteRows(shades); }) });
+            Configure(links, new string[] { "Source Item ID", "Target Item ID", "Source Edge", "Target Edge", "Color" }, true);
+            links.Columns[0].HeaderText = "Source Item"; links.Columns[1].HeaderText = "Target Item";
+            GridPage(linkTab, links, "Visual connectors between the Start or End edges of items. No automatic shifting or rescheduling.", new Control[] { Button("Delete Selection", delegate { DeleteRows(links); }) });
 
             var excel = Fields(excelTab, 5, 280);
-            Field(excel, 0, "Classeur enregistré", workbook); Field(excel, 1, "Feuille", worksheet); Field(excel, 2, "Plage sans en-tête", range);
+            Field(excel, 0, "Saved workbook", workbook); Field(excel, 1, "Sheet", worksheet); Field(excel, 2, "Range (no header)", range);
             var excelButtons = new FlowLayoutPanel { Dock = DockStyle.Fill };
-            excelButtons.Controls.Add(Button("Parcourir…", delegate { using (var d = new OpenFileDialog { Filter = "Classeurs Excel|*.xlsx;*.xlsm;*.xls;*.xlsb", CheckFileExists = true }) if (d.ShowDialog(this) == DialogResult.OK) workbook.Text = d.FileName; }));
-            excelButtons.Controls.Add(Button("Importer Excel", delegate { ImportExcel(); })); excel.Controls.Add(excelButtons, 1, 3);
-            Note(excel, 4, "Première ligne : jalons, même vide. Première colonne : libellé ; suivantes : dates/instants exacts. L'import conserve les objets existants et leurs liens par indice d'ancre."); excel.RowStyles[4].Height = 70;
+            excelButtons.Controls.Add(Button("Browse…", delegate { using (var d = new OpenFileDialog { Filter = "Excel workbooks|*.xlsx;*.xlsm;*.xls;*.xlsb", CheckFileExists = true }) if (d.ShowDialog(this) == DialogResult.OK) workbook.Text = d.FileName; }));
+            excelButtons.Controls.Add(Button("Import from Excel", delegate { ImportExcel(); })); excel.Controls.Add(excelButtons, 1, 3);
+            Note(excel, 4, "First row: milestones, even if empty. First column: label; following columns: dates or exact times. Import keeps existing items and their links by anchor index."); excel.RowStyles[4].Height = 70;
             var labelFields = Fields(labelTab, 7, 300);
-            Field(labelFields, 0, "Colonne Responsable", responsible); Field(labelFields, 1, "Colonne Remarque", remark);
-            Field(labelFields, 2, "Part réservée aux libellés (0,15–0,65)", labelFraction); Field(labelFields, 3, "Police (6–24 points)", fontSize);
-            Field(labelFields, 4, "Titre Activité", activityHeader); Field(labelFields, 5, "Titre Responsable", responsibleHeader); Field(labelFields, 6, "Titre Remarque", remarkHeader);
+            Field(labelFields, 0, "Owner column", responsible); Field(labelFields, 1, "Remark column", remark);
+            Field(labelFields, 2, "Label area share (0.15–0.65)", labelFraction); Field(labelFields, 3, "Font size (6–24 pt)", fontSize);
+            Field(labelFields, 4, "Activity heading", activityHeader); Field(labelFields, 5, "Owner heading", responsibleHeader); Field(labelFields, 6, "Remark heading", remarkHeader);
             var footer = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.RightToLeft };
-            footer.Controls.Add(Button("Appliquer", delegate { Apply(); }));
-            var cancel = Button("Annuler", delegate { DialogResult = DialogResult.Cancel; Close(); }); cancel.DialogResult = DialogResult.Cancel; CancelButton = cancel;
+            footer.Controls.Add(Button("Apply", delegate { Apply(); }));
+            var cancel = Button("Cancel", delegate { DialogResult = DialogResult.Cancel; Close(); }); cancel.DialogResult = DialogResult.Cancel; CancelButton = cancel;
             footer.Controls.Add(cancel); root.Controls.Add(footer, 0, 2);
             items.DefaultValuesNeeded += delegate(object sender, DataGridViewRowEventArgs e) { bool milestone = activities.Rows.Count == 1; e.Row.Cells[0].Value = "item_" + Guid.NewGuid().ToString("N"); e.Row.Cells[1].Value = Cell(activities.Rows[0], 0); e.Row.Cells[2].Value = milestone ? "Milestone" : "Bar"; e.Row.Cells[3].Value = start.Text; e.Row.Cells[4].Value = milestone ? null : end.Text; e.Row.Cells[7].Value = "InclusiveDays"; };
             anchors.DefaultValuesNeeded += delegate(object sender, DataGridViewRowEventArgs e) { e.Row.Cells[0].Value = "date_" + Guid.NewGuid().ToString("N"); e.Row.Cells[1].Value = Spec.Gantt.MilestoneRow.Id; e.Row.Cells[2].Value = 1; };
@@ -128,7 +128,7 @@ namespace OpenSlideCharts
         private static bool Flag(DataGridViewRow row, int col) { return row.Cells[col].Value is bool && (bool)row.Cells[col].Value; }
         private static bool Empty(DataGridViewRow row)
         { foreach (DataGridViewCell cell in row.Cells) if (cell.Value is bool ? (bool)cell.Value : !String.IsNullOrWhiteSpace(Convert.ToString(cell.Value, CultureInfo.CurrentCulture))) return false; return true; }
-        private static int Integer(string value, string name) { int result; if (!Int32.TryParse(value, NumberStyles.Integer, CultureInfo.CurrentCulture, out result)) throw new FormatException(name + " : entier requis."); return result; }
+        private static int Integer(string value, string name) { int result; if (!Int32.TryParse(value, NumberStyles.Integer, CultureInfo.CurrentCulture, out result)) throw new FormatException(name + ": integer required."); return result; }
         private static void DeleteRows(DataGridView grid)
         {
             var selected = new HashSet<DataGridViewRow>(); foreach (DataGridViewCell cell in grid.SelectedCells) if (!cell.OwningRow.IsNewRow) selected.Add(cell.OwningRow);
@@ -189,13 +189,13 @@ namespace OpenSlideCharts
             g.Activities = new List<GanttActivity>();
             foreach (DataGridViewRow row in activities.Rows)
             {
-                var activity = new GanttActivity { Id = Cell(row, 0).Trim(), Label = Cell(row, 1), Responsible = Cell(row, 2), Remark = Cell(row, 3), Indent = Integer(Cell(row, 4), "Retrait"), Color = Optional(Cell(row, 5)), Separator = Flag(row, 6) };
+                var activity = new GanttActivity { Id = Cell(row, 0).Trim(), Label = Cell(row, 1), Responsible = Cell(row, 2), Remark = Cell(row, 3), Indent = Integer(Cell(row, 4), "Indent"), Color = Optional(Cell(row, 5)), Separator = Flag(row, 6) };
                 if (activity.Id == Spec.Gantt.MilestoneRow.Id) g.MilestoneRow = activity; else g.Activities.Add(activity);
             }
             g.Items = new List<GanttItem>();
             foreach (DataGridViewRow row in items.Rows) if (!row.IsNewRow && !Empty(row)) g.Items.Add(new GanttItem { Id = Cell(row, 0).Trim(), RowId = Cell(row, 1).Trim(), Kind = String.IsNullOrWhiteSpace(Cell(row, 2)) ? "Bar" : Cell(row, 2).Trim(), StartDate = Optional(Cell(row, 3)), EndDate = Optional(Cell(row, 4)), Label = Cell(row, 5), Color = Optional(Cell(row, 6)), DateMode = String.IsNullOrWhiteSpace(Cell(row, 7)) ? "InclusiveDays" : Cell(row, 7).Trim(), StartAnchor = Optional(Cell(row, 8)), EndAnchor = Optional(Cell(row, 9)), ShowDates = Flag(row, 10) });
             g.DateAnchors = new List<GanttDateAnchor>();
-            foreach (DataGridViewRow row in anchors.Rows) if (!row.IsNewRow && !Empty(row)) g.DateAnchors.Add(new GanttDateAnchor { Id = Cell(row, 0).Trim(), RowId = Cell(row, 1).Trim(), Index = Integer(Cell(row, 2), "Colonne date") - 1, Date = Cell(row, 3).Trim() });
+            foreach (DataGridViewRow row in anchors.Rows) if (!row.IsNewRow && !Empty(row)) g.DateAnchors.Add(new GanttDateAnchor { Id = Cell(row, 0).Trim(), RowId = Cell(row, 1).Trim(), Index = Integer(Cell(row, 2), "Date column") - 1, Date = Cell(row, 3).Trim() });
             g.Shades = new List<GanttShade>(); foreach (DataGridViewRow row in shades.Rows) if (!row.IsNewRow && !Empty(row)) g.Shades.Add(new GanttShade { StartDate = Cell(row, 0).Trim(), EndDate = Cell(row, 1).Trim(), Label = Cell(row, 2), Color = Optional(Cell(row, 3)) });
             g.Links = new List<GanttLink>(); foreach (DataGridViewRow row in links.Rows) if (!row.IsNewRow && !Empty(row)) g.Links.Add(new GanttLink { FromId = Cell(row, 0).Trim(), ToId = Cell(row, 1).Trim(), FromEdge = String.IsNullOrWhiteSpace(Cell(row, 2)) ? "End" : Cell(row, 2).Trim(), ToEdge = String.IsNullOrWhiteSpace(Cell(row, 3)) ? "Start" : Cell(row, 3).Trim(), Color = Optional(Cell(row, 4)) });
             g.ShowResponsible = responsible.Checked; g.ShowRemark = remark.Checked; g.LabelFraction = ChartEditor.Number(labelFraction.Text, "Label share"); g.FontSize = ChartEditor.Number(fontSize.Text, "Font size");
@@ -219,12 +219,12 @@ namespace OpenSlideCharts
             var rows = new List<KeyValuePair<string, string>>();
             foreach (DataGridViewRow row in activities.Rows) rows.Add(new KeyValuePair<string, string>(Cell(row, 0), Cell(row, 1)));
             ChoiceColumn(items, 1, new List<KeyValuePair<string, string>>(rows)); ChoiceColumn(anchors, 1, new List<KeyValuePair<string, string>>(rows));
-            var dates = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("", "Aucune") };
-            foreach (DataGridViewRow row in anchors.Rows) if (!row.IsNewRow && !Empty(row)) dates.Add(new KeyValuePair<string, string>(Cell(row, 0), "Date " + Cell(row, 2) + " : " + Cell(row, 3)));
+            var dates = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("", "None") };
+            foreach (DataGridViewRow row in anchors.Rows) if (!row.IsNewRow && !Empty(row)) dates.Add(new KeyValuePair<string, string>(Cell(row, 0), "Date " + Cell(row, 2) + ": " + Cell(row, 3)));
             ChoiceColumn(items, 8, new List<KeyValuePair<string, string>>(dates)); ChoiceColumn(items, 9, new List<KeyValuePair<string, string>>(dates));
-            ChoiceColumn(items, 2, Pairs(new[] { "Bar", "Pentagon", "Chevron", "Milestone", "Bracket" }, new[] { "Barre", "Flèche pentagone", "Chevron", "Jalon", "Crochet" }));
-            ChoiceColumn(items, 7, Pairs(new[] { "InclusiveDays", "Exact" }, new[] { "Jours inclus", "Instants exacts" }));
-            ChoiceColumn(links, 2, Pairs(new[] { "Start", "End" }, new[] { "Début", "Fin" })); ChoiceColumn(links, 3, Pairs(new[] { "Start", "End" }, new[] { "Début", "Fin" }));
+            ChoiceColumn(items, 2, Pairs(new[] { "Bar", "Pentagon", "Chevron", "Milestone", "Bracket" }, new[] { "Bar", "Pentagon Arrow", "Chevron", "Milestone", "Bracket" }));
+            ChoiceColumn(items, 7, Pairs(new[] { "InclusiveDays", "Exact" }, new[] { "Inclusive Days", "Exact Times" }));
+            ChoiceColumn(links, 2, Pairs(new[] { "Start", "End" }, new[] { "Start", "End" })); ChoiceColumn(links, 3, Pairs(new[] { "Start", "End" }, new[] { "Start", "End" }));
             var objects = new List<KeyValuePair<string, string>>();
             foreach (DataGridViewRow row in items.Rows) if (!row.IsNewRow && !Empty(row)) objects.Add(new KeyValuePair<string, string>(Cell(row, 0), Cell(row, 5) + " (" + Cell(row, 2) + ", " + Cell(row, 3) + ")"));
             ChoiceColumn(links, 0, new List<KeyValuePair<string, string>>(objects)); ChoiceColumn(links, 1, new List<KeyValuePair<string, string>>(objects));

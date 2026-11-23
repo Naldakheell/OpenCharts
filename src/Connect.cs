@@ -123,7 +123,7 @@ namespace OpenSlideCharts
                 xml.Append("<menu id='oscContextCreate" + suffix + "' label='Add Connector From…' getVisible='GetSegmentContextVisible'>");
                 xml.Append("<button id='oscContextCreateTop" + suffix + "' label='Segment Top' onAction='BeginConnectorFromTop'/>");
                 xml.Append("<button id='oscContextCreateBottom" + suffix + "' label='Segment Bottom' onAction='BeginConnectorFromBottom'/>");
-                xml.Append("<button id='oscContextCreateOutput" + suffix + "' label='Column Running Total' onAction='BeginConnectorFromOutput'/></menu>");
+                xml.Append("<button id='oscContextCreateOutput" + suffix + "' label='Column Cumulative' onAction='BeginConnectorFromOutput'/></menu>");
                 xml.Append("<button id='oscContextZeroTop" + suffix + "' label='Set Segment Top to Zero' getVisible='GetSegmentContextVisible' onAction='PinSegmentTopZero'/>");
                 xml.Append("<button id='oscContextZeroBottom" + suffix + "' label='Set Segment Bottom to Zero' getVisible='GetSegmentContextVisible' onAction='PinSegmentBottomZero'/>");
                 xml.Append("<button id='oscContextCancelCreate" + suffix + "' label='Cancel Adding Connector' getVisible='GetPendingConnectorVisible' onAction='CancelConnectorCreation'/>");
@@ -270,8 +270,8 @@ namespace OpenSlideCharts
         {
             Run(delegate
             {
-                var sample = new ChartSpec { Kind = "Column", Title = "Séries", LayoutMode = "Stacked" };
-                sample.Series.AddRange(new string[] { "Produit A", "Produit B", "Produit C" });
+                var sample = new ChartSpec { Kind = "Column", Title = "Series", LayoutMode = "Stacked" };
+                sample.Series.AddRange(new string[] { "Product A", "Product B", "Product C" });
                 sample.Rows.Add(new ChartRow { Label = "2024", Values = new List<double?> { 40, 25, 15 } });
                 sample.Rows.Add(new ChartRow { Label = "2025", Values = new List<double?> { 45, 35, 20 } });
                 sample.Rows.Add(new ChartRow { Label = "2026", Values = new List<double?> { 50, 40, 30 } });

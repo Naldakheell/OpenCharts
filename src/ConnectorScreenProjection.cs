@@ -13,7 +13,7 @@ namespace OpenSlideCharts
         public ConnectorScreenProjection(Point origin, Point corner, double width, double height)
         {
             if (!Finite(width) || !Finite(height) || width <= 0 || height <= 0 || corner.X <= origin.X || corner.Y <= origin.Y)
-                throw new ArgumentException("Projection du graphique invalide.");
+                throw new ArgumentException("Invalid chart projection.");
             this.origin = origin; this.corner = corner; this.width = width; this.height = height;
         }
         private static bool Finite(double value) { return !Double.IsNaN(value) && !Double.IsInfinity(value); }

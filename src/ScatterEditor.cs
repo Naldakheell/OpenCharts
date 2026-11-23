@@ -27,7 +27,7 @@ namespace OpenSlideCharts
             SuspendLayout();
             Spec = ChartStorage.Clone(initial ?? ChartSamples.Create("Scatter")); ChartEngine.Build(Spec, frameWidth, frameHeight);
             width = frameWidth; height = frameHeight;
-            Text = "OpenSlideCharts — Dispersion et bulles"; StartPosition = FormStartPosition.CenterScreen;
+            Text = "OpenSlideCharts — Scatter and Bubble"; StartPosition = FormStartPosition.CenterScreen;
             AutoScaleDimensions = new SizeF(96, 96); AutoScaleMode = AutoScaleMode.Dpi;
             ClientSize = new Size(1000, 700); MinimumSize = new Size(800, 580); Font = new Font("Segoe UI", 9);
             BackColor = Color.FromArgb(247, 249, 252);
@@ -35,50 +35,50 @@ namespace OpenSlideCharts
             root.RowStyles.Add(new RowStyle(SizeType.Absolute, 64)); root.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); root.RowStyles.Add(new RowStyle(SizeType.Absolute, 44)); Controls.Add(root);
             var heading = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2 };
             heading.RowStyles.Add(new RowStyle(SizeType.Absolute, 26)); heading.RowStyles.Add(new RowStyle(SizeType.Absolute, 32));
-            heading.Controls.Add(new Label { Dock = DockStyle.Fill, Text = "Titre — le type est déduit de la colonne Taille : vide = dispersion ; renseignée = bulles." }, 0, 0);
+            heading.Controls.Add(new Label { Dock = DockStyle.Fill, Text = "Title — the type follows the Size column: empty = scatter; filled = bubble." }, 0, 0);
             title.Text = Spec.Title ?? ""; title.Dock = DockStyle.Fill; heading.Controls.Add(title, 0, 1); root.Controls.Add(heading, 0, 0);
             var tabs = new TabControl { Dock = DockStyle.Fill }; root.Controls.Add(tabs, 0, 1);
-            var dataTab = Tab(tabs, "Données"); var axesTab = Tab(tabs, "Axes"); var markerTab = Tab(tabs, "Marqueurs");
-            var labelTab = Tab(tabs, "Étiquettes"); var trendTab = Tab(tabs, "Tendances"); var partitionTab = Tab(tabs, "Partitions"); var excelTab = Tab(tabs, "Lien Excel");
-            ConfigureGrid(data, new string[] { "Libellé", "X", "Y", "Taille", "Groupe", "Couleur", "Marqueur" });
-            GridPage(dataTab, data, "X/Y absents : point conservé sans tracé. Taille ≥ 0 ; taille seule = référence d'échelle. Couleur #RRGGBB ; marqueur Circle, Square, Triangle, Diamond, Plus, Cross ou None.", delegate { PasteClipboard(); });
+            var dataTab = Tab(tabs, "Data"); var axesTab = Tab(tabs, "Axes"); var markerTab = Tab(tabs, "Markers");
+            var labelTab = Tab(tabs, "Labels"); var trendTab = Tab(tabs, "Trend Lines"); var partitionTab = Tab(tabs, "Partitions"); var excelTab = Tab(tabs, "Excel Link");
+            ConfigureGrid(data, new string[] { "Label", "X", "Y", "Size", "Group", "Color", "Marker" });
+            GridPage(dataTab, data, "Missing X/Y: the point is kept but not plotted. Size ≥ 0; size alone = scale reference. Color #RRGGBB; marker Circle, Square, Triangle, Diamond, Plus, Cross or None.", delegate { PasteClipboard(); });
             data.KeyDown += PasteKey;
             data.EditingControlShowing += delegate(object sender, DataGridViewEditingControlShowingEventArgs e) { e.Control.KeyDown -= PasteKey; e.Control.KeyDown += PasteKey; };
             var axes = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, Padding = new Padding(10) };
             axes.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50)); axes.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50)); axesTab.Controls.Add(axes);
-            var xGroup = new GroupBox { Text = "Axe X", Dock = DockStyle.Fill }; var yGroup = new GroupBox { Text = "Axe Y", Dock = DockStyle.Fill };
+            var xGroup = new GroupBox { Text = "X Axis", Dock = DockStyle.Fill }; var yGroup = new GroupBox { Text = "Y Axis", Dock = DockStyle.Fill };
             axes.Controls.Add(xGroup, 0, 0); axes.Controls.Add(yGroup, 1, 0);
             var xf = Fields(xGroup, 6, 170); var yf = Fields(yGroup, 6, 170);
-            Field(xf, 0, "Titre", xTitle); Field(xf, 1, "Minimum (vide = auto)", xMin); Field(xf, 2, "Maximum (vide = auto)", xMax);
-            Field(xf, 3, "Échelle logarithmique", xLog); Field(xf, 4, "Sens inversé", xReverse);
-            Field(yf, 0, "Titre", yTitle); Field(yf, 1, "Minimum (vide = auto)", yMin); Field(yf, 2, "Maximum (vide = auto)", yMax);
-            Field(yf, 3, "Échelle logarithmique", yLog); Field(yf, 4, "Sens inversé", yReverse);
-            Note(xf, 5, "Logarithme : borne positive requise. Les coordonnées ≤ 0 sont placées au minimum avec avertissement. Les points hors bornes fixes ne sont pas tracés.");
-            Note(yf, 5, "Bornes indépendantes des deux axes. Axes de dates et ruptures non pris en charge.");
+            Field(xf, 0, "Title", xTitle); Field(xf, 1, "Minimum (empty = auto)", xMin); Field(xf, 2, "Maximum (empty = auto)", xMax);
+            Field(xf, 3, "Logarithmic scale", xLog); Field(xf, 4, "Reverse order", xReverse);
+            Field(yf, 0, "Title", yTitle); Field(yf, 1, "Minimum (empty = auto)", yMin); Field(yf, 2, "Maximum (empty = auto)", yMax);
+            Field(yf, 3, "Logarithmic scale", yLog); Field(yf, 4, "Reverse order", yReverse);
+            Note(xf, 5, "Logarithmic: a positive bound is required. Coordinates ≤ 0 are placed at the minimum with a warning. Points outside fixed bounds are not plotted.");
+            Note(yf, 5, "Each axis has independent bounds. Date axes and axis breaks are not supported.");
             var markerFields = Fields(markerTab, 7, 260);
-            Choices(sizing, new string[] { "Aire proportionnelle", "Diamètre proportionnel" }); Choices(scheme, new string[] { "Couleurs par groupe", "Formes par groupe (dispersion)", "Sans marqueurs" });
-            Field(markerFields, 0, "Représentation de la taille", sizing); Field(markerFields, 1, "Diamètre maximal des bulles (pt)", bubbleSize); Field(markerFields, 2, "Taille des marqueurs (pt)", markerSize);
-            Field(markerFields, 3, "Style de groupes", scheme); Field(markerFields, 4, "Grille", showGrid); Field(markerFields, 5, "Légende des groupes", showLegend);
-            Note(markerFields, 6, "Les petites bulles passent devant les grandes. Ajouter une taille convertit en bulles et rétablit les formes circulaires. Les couleurs restent liées aux groupes ou aux points.");
+            Choices(sizing, new string[] { "Proportional area", "Proportional diameter" }); Choices(scheme, new string[] { "Colors by group", "Shapes by group (scatter)", "No markers" });
+            Field(markerFields, 0, "Size representation", sizing); Field(markerFields, 1, "Maximum bubble diameter (pt)", bubbleSize); Field(markerFields, 2, "Marker size (pt)", markerSize);
+            Field(markerFields, 3, "Group style", scheme); Field(markerFields, 4, "Gridlines", showGrid); Field(markerFields, 5, "Group legend", showLegend);
+            Note(markerFields, 6, "Smaller bubbles are drawn in front of larger ones. Adding a size converts to bubble and restores circular markers. Colors stay tied to groups or points.");
             var labelFields = Fields(labelTab, 5, 260);
-            Choices(labels, new string[] { "Automatique (jusqu'à 300 points)", "Afficher", "Masquer" });
-            string[] labelNames = { "Aucun", "Libellé", "Valeur X", "Valeur Y", "X et Y", "Taille" }; Choices(firstContent, labelNames); Choices(secondContent, labelNames);
-            Field(labelFields, 0, "Affichage", labels); Field(labelFields, 1, "Première étiquette", firstContent); Field(labelFields, 2, "Deuxième étiquette", secondContent); Field(labelFields, 3, "Taille de police (pt)", labelSize);
-            Note(labelFields, 4, "Placement automatique par candidats proches ; collisions encore possibles dans les cas denses. Les libellés longs peuvent être abrégés visuellement ; les données restent complètes.");
-            ConfigureGrid(trends, new string[] { "Groupe", "Couleur" });
-            trends.Columns.Insert(0, new DataGridViewCheckBoxColumn { HeaderText = "Tous les groupes", Name = "all" });
-            trends.Columns.Add(new DataGridViewCheckBoxColumn { HeaderText = "Afficher R²", Name = "r2" }); trends.Columns.Add(new DataGridViewCheckBoxColumn { HeaderText = "Équation", Name = "equation" });
-            GridPage(trendTab, trends, "Tendances linéaires uniquement, axes linéaires requis. Tous les groupes coché = régression commune ; sinon groupe exact, vide = points sans groupe. Bulles : poids = Taille brute (choix original).", null);
-            ConfigureGrid(partitions, new string[] { "Libellé", "X1", "Y1", "X2", "Y2", "Couleur" });
-            GridPage(partitionTab, partitions, "Droites définies par deux points distincts en coordonnées de données, prolongées puis coupées au cadre. Les deux axes doivent être linéaires.", null);
+            Choices(labels, new string[] { "Automatic (up to 300 points)", "Show", "Hide" });
+            string[] labelNames = { "None", "Label", "X value", "Y value", "X and Y", "Size" }; Choices(firstContent, labelNames); Choices(secondContent, labelNames);
+            Field(labelFields, 0, "Display", labels); Field(labelFields, 1, "First label", firstContent); Field(labelFields, 2, "Second label", secondContent); Field(labelFields, 3, "Font size (pt)", labelSize);
+            Note(labelFields, 4, "Automatic placement from nearby candidate positions; collisions are still possible in dense areas. Long labels may be shortened visually; the data stays complete.");
+            ConfigureGrid(trends, new string[] { "Group", "Color" });
+            trends.Columns.Insert(0, new DataGridViewCheckBoxColumn { HeaderText = "All Groups", Name = "all" });
+            trends.Columns.Add(new DataGridViewCheckBoxColumn { HeaderText = "Show R²", Name = "r2" }); trends.Columns.Add(new DataGridViewCheckBoxColumn { HeaderText = "Equation", Name = "equation" });
+            GridPage(trendTab, trends, "Linear trend lines only; linear axes required. All Groups checked = one common regression; otherwise the exact group, empty = ungrouped points. Bubble: weight = raw Size (original choice).", null);
+            ConfigureGrid(partitions, new string[] { "Label", "X1", "Y1", "X2", "Y2", "Color" });
+            GridPage(partitionTab, partitions, "Lines defined by two distinct points in data coordinates, extended and then clipped to the frame. Both axes must be linear.", null);
             var excel = Fields(excelTab, 5, 260);
-            Field(excel, 0, "Classeur enregistré", workbook); Field(excel, 1, "Feuille", worksheet); Field(excel, 2, "Plage sans en-tête (3 à 7 colonnes)", range);
+            Field(excel, 0, "Saved workbook", workbook); Field(excel, 1, "Sheet", worksheet); Field(excel, 2, "Range without header (3 to 7 columns)", range);
             var excelButtons = new FlowLayoutPanel { Dock = DockStyle.Fill };
-            excelButtons.Controls.Add(Button("Parcourir…", delegate { using (var dialog = new OpenFileDialog { Filter = "Classeurs Excel|*.xlsx;*.xlsm;*.xls;*.xlsb", CheckFileExists = true }) if (dialog.ShowDialog(this) == DialogResult.OK) workbook.Text = dialog.FileName; }));
-            excelButtons.Controls.Add(Button("Importer Excel", delegate { ImportExcel(); })); excel.Controls.Add(excelButtons, 0, 3); excel.SetColumnSpan(excelButtons, 2);
-            Note(excel, 4, "Ordre : Libellé, X, Y, Taille, Groupe, Couleur, Marqueur. Valeurs enregistrées uniquement. Une taille ajoutée/retirée convertit le type. Les macros et liens externes ne sont pas activés.");
+            excelButtons.Controls.Add(Button("Browse…", delegate { using (var dialog = new OpenFileDialog { Filter = "Excel workbooks|*.xlsx;*.xlsm;*.xls;*.xlsb", CheckFileExists = true }) if (dialog.ShowDialog(this) == DialogResult.OK) workbook.Text = dialog.FileName; }));
+            excelButtons.Controls.Add(Button("Import from Excel", delegate { ImportExcel(); })); excel.Controls.Add(excelButtons, 0, 3); excel.SetColumnSpan(excelButtons, 2);
+            Note(excel, 4, "Order: Label, X, Y, Size, Group, Color, Marker. Saved values only. Adding or removing a size converts the type. Macros and external links are not enabled.");
             var footer = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.RightToLeft };
-            var apply = Button("Appliquer", delegate { Apply(); }); var cancel = Button("Annuler", delegate { DialogResult = DialogResult.Cancel; Close(); }); cancel.DialogResult = DialogResult.Cancel;
+            var apply = Button("Apply", delegate { Apply(); }); var cancel = Button("Cancel", delegate { DialogResult = DialogResult.Cancel; Close(); }); cancel.DialogResult = DialogResult.Cancel;
             footer.Controls.Add(apply); footer.Controls.Add(cancel); root.Controls.Add(footer, 0, 2); AcceptButton = apply; CancelButton = cancel;
             LoadSpec(Spec); ResumeLayout(true);
         }
@@ -99,9 +99,9 @@ namespace OpenSlideCharts
             layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 52)); layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 38)); parent.Controls.Add(layout);
             layout.Controls.Add(new Label { Text = text, Dock = DockStyle.Fill }, 0, 0); layout.Controls.Add(grid, 0, 1);
             var buttons = new FlowLayoutPanel { Dock = DockStyle.Fill };
-            if (paste != null) buttons.Controls.Add(Button("Coller Excel", paste));
-            buttons.Controls.Add(Button("Ajouter une ligne", delegate { grid.Rows.Add(); }));
-            buttons.Controls.Add(Button("Supprimer les lignes", delegate { var rows = new List<DataGridViewRow>(); foreach (DataGridViewCell cell in grid.SelectedCells) if (!cell.OwningRow.IsNewRow && !rows.Contains(cell.OwningRow)) rows.Add(cell.OwningRow); foreach (DataGridViewRow row in rows) grid.Rows.Remove(row); }));
+            if (paste != null) buttons.Controls.Add(Button("Paste from Excel", paste));
+            buttons.Controls.Add(Button("Add Row", delegate { grid.Rows.Add(); }));
+            buttons.Controls.Add(Button("Delete Rows", delegate { var rows = new List<DataGridViewRow>(); foreach (DataGridViewCell cell in grid.SelectedCells) if (!cell.OwningRow.IsNewRow && !rows.Contains(cell.OwningRow)) rows.Add(cell.OwningRow); foreach (DataGridViewRow row in rows) grid.Rows.Remove(row); }));
             layout.Controls.Add(buttons, 0, 2);
         }
         private static TableLayoutPanel Fields(Control parent, int rows, int captionWidth)
@@ -182,7 +182,7 @@ namespace OpenSlideCharts
             {
                 if (cells.TrueForAll(delegate(string cell) { return String.IsNullOrWhiteSpace(cell); })) continue;
                 if (points.Count == 0 && cells.Count >= 3 && cells[1].Trim().Equals("X", StringComparison.OrdinalIgnoreCase) && cells[2].Trim().Equals("Y", StringComparison.OrdinalIgnoreCase)) continue;
-                if (cells.Count < 3 || cells.Count > 7) throw new ArgumentException("Collage : 3 à 7 colonnes attendues (Libellé, X, Y, Taille, Groupe, Couleur, Marqueur).");
+                if (cells.Count < 3 || cells.Count > 7) throw new ArgumentException("Paste: 3 to 7 columns expected (Label, X, Y, Size, Group, Color, Marker).");
                 points.Add(new ScatterPoint { Label = cells[0], X = Optional(cells[1], "Pasted X"), Y = Optional(cells[2], "Pasted Y"), Size = cells.Count > 3 ? Optional(cells[3], "Pasted size") : null,
                     Group = cells.Count > 4 ? cells[4] : "", Color = cells.Count > 5 ? OptionalText(cells[5]) : null, Marker = cells.Count > 6 ? OptionalText(cells[6]) : null });
             }
@@ -204,6 +204,6 @@ namespace OpenSlideCharts
                 source.Scatter.Points.Add(new ScatterPoint { Label = Cell(row, 0), Group = Cell(row, 4), Color = OptionalText(Cell(row, 5)), Marker = OptionalText(Cell(row, 6)) });
             return source;
         }
-        private void ShowError(Exception error) { MessageBox.Show(this, error.Message, "Vérifier les données", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
+        private void ShowError(Exception error) { MessageBox.Show(this, error.Message, "Check Data", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
     }
 }

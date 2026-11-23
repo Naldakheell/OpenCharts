@@ -48,7 +48,7 @@ namespace OpenSlideCharts
         public static ConnectorEndpoints Read(object shapeObject)
         {
             dynamic shape = shapeObject;
-            if (Math.Abs((double)shape.Rotation) > .01) throw new NotSupportedException("Déplacez une extrémité du connecteur sans utiliser la poignée de rotation.");
+            if (Math.Abs((double)shape.Rotation) > .01) throw new NotSupportedException("Move a connector end without using the rotation handle.");
             double x = shape.Left, y = shape.Top, w = shape.Width, h = shape.Height;
             bool flipX = (int)shape.HorizontalFlip == -1, flipY = (int)shape.VerticalFlip == -1;
             return new ConnectorEndpoints { X1 = x + (flipX ? w : 0), X2 = x + (flipX ? 0 : w), Y1 = y + (flipY ? h : 0), Y2 = y + (flipY ? 0 : h) };

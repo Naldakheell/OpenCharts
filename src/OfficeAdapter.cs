@@ -24,7 +24,7 @@ namespace OpenSlideCharts
             shape.Tags.Add("OSC_VERSION", "1");
             shape.Tags.Add("OSC_COUNT", count.ToString(CultureInfo.InvariantCulture));
             for (int i = 0; i < count; i++) shape.Tags.Add("OSC_DATA_" + i.ToString("D4"), hex.Substring(i * TagCharacters, Math.Min(TagCharacters, hex.Length - i * TagCharacters)));
-            shape.AlternativeText = "OpenSlideCharts : " + spec.Title + ". Graphique " + spec.Kind + ".";
+            shape.AlternativeText = "OpenSlideCharts: " + spec.Title + ". " + spec.Kind + " chart.";
         }
         public static ChartSpec Read(object shapeObject)
         {

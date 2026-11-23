@@ -73,7 +73,7 @@ namespace OpenSlideCharts
             actions.Controls.Add(MakeButton("Add Series", delegate
             {
                 if (grid.Columns.Count >= 9) { Error("Eight series maximum."); return; }
-                string name = AskName("Série " + grid.Columns.Count);
+                string name = AskName("Series " + grid.Columns.Count);
                 if (name != null) AddSeries(name);
             }));
             actions.Controls.Add(MakeButton("Remove Series", delegate
